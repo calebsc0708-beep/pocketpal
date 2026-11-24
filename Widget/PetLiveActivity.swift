@@ -14,11 +14,13 @@ struct PetLiveActivity: Widget {
         ActivityConfiguration(for: PetAttributes.self) { context in
             // Lock Screen banner
             HStack(spacing: 12) {
-                IslandSprite(state: context.state, size: 48)
+                IslandSprite(customPNG: context.attributes.customPNG, state: context.state, size: 48)
                 Text(displayName(context.state))
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
+                TrailingView(state: context.state)
+                    .foregroundStyle(.white)
             }
             .padding()
             .activityBackgroundTint(Color.black.opacity(0.6))
@@ -26,23 +28,21 @@ struct PetLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    IslandSprite(state: context.state, size: 56)
+                    IslandSprite(customPNG: context.attributes.customPNG, state: context.state, size: 56)
                 }
                 DynamicIslandExpandedRegion(.center) {
                     Text(displayName(context.state))
                         .font(.headline)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Image(systemName: "heart.fill")
-                        .foregroundStyle(.pink)
+                    TrailingView(state: context.state)
                 }
             } compactLeading: {
-                IslandSprite(state: context.state, size: 26)
+                IslandSprite(customPNG: context.attributes.customPNG, state: context.state, size: 26)
             } compactTrailing: {
-                Image(systemName: "heart.fill")
-                    .foregroundStyle(.pink)
+                TrailingView(state: context.state)
             } minimal: {
-                IslandSprite(state: context.state, size: 22)
+                IslandSprite(customPNG: context.attributes.customPNG, state: context.state, size: 22)
             }
         }
     }
