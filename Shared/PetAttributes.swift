@@ -1,6 +1,7 @@
 import ActivityKit
 import SwiftUI
 import UIKit
+import CoreText
 
 /// Data the Live Activity carries. Shared by the app and the widget extension.
 struct PetAttributes: ActivityAttributes {
@@ -8,6 +9,7 @@ struct PetAttributes: ActivityAttributes {
         var spriteName: String
         var nickname: String
         var startDate: Date
+        var animate: Bool
     }
 }
 
@@ -86,6 +88,48 @@ struct SpriteImage: View {
             Image(systemName: "questionmark.circle")
                 .resizable()
                 .scaledToFit()
+        }
+    }
+}
+
+extension Sprites {
+    /// Registers the bundled frame fonts with this process (backup for UIAppFonts).
+    static let fontsRegistered: Bool = {
+        guard let dir = Bundle.main.resourceURL?.appendingPathComponent("Fonts", isDirectory: true),
+              let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
+        else { return false }
+        for url in files where url.pathExtension.lowercased() == "ttf" {
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
+        return true
+    }()
+
+    static func hasFont(for name: String, size: CGFloat) -> Bool {
+        _ = fontsRegistered
+        return UIFont(name: fontName(for: name), size: size) != nil
+    }
+}
+
+/// Shows the sprite in the island / Lock Screen / in-app preview.
+/// Animated sprites use the "frame font" trick: a live-ticking timer drawn in a
+/// font whose digits are animation frames. The font hides every character except
+/// the last digit, so the timer renders as a single sprite that changes each second.
+struct IslandSprite: View {
+    let state: PetAttributes.ContentState
+    let size: CGFloat
+
+    var body: some View {
+        let entry = Sprites.entry(named: state.spriteName)
+
+        if state.animate, let entry, entry.isAnimated, Sprites.hasFont(for: entry.name, size: size) {
+            Text(state.startDate, style: .timer)
+                .font(.custom(Sprites.fontName(for: entry.name), fixedSize: size))
+                .lineLimit(1)
+                .multilineTextAlignment(.center)
+                .frame(width: size, height: size)
+        } else {
+            SpriteImage(stem: entry?.frames.first)
+                .frame(width: size, height: size)
         }
     }
 }

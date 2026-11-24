@@ -29,6 +29,8 @@ struct ContentView: View {
     @State private var entries = Sprites.all()
     @AppStorage("selectedSprite") private var selected = ""
     @AppStorage("nickname") private var nickname = ""
+    @AppStorage("animate") private var animate = true
+    @State private var previewStart = Date()
     @State private var status = ""
 
     var body: some View {
@@ -67,6 +69,21 @@ struct ContentView: View {
                     TextField("Nickname (optional)", text: $nickname)
                         .textFieldStyle(.roundedBorder)
 
+                    Toggle("Animate", isOn: $animate)
+
+                    // Exactly what the Dynamic Island will draw
+                    VStack(spacing: 6) {
+                        HStack(spacing: 0) {
+                            IslandSprite(state: previewState, size: 26)
+                            Spacer()
+                            Image(systemName: "heart.fill").foregroundStyle(.pink)
+                        }
+                        .padding(.horizontal, 14)
+                        .frame(width: 200, height: 37)
+                        .background(Capsule().fill(.black))
+                        Text("Island preview").font(.caption2).foregroundStyle(.secondary)
+                    }
+
                     Button("Show in Dynamic Island") { Task { await start() } }
                         .buttonStyle(.borderedProminent)
                         .disabled(selected.isEmpty)
@@ -87,17 +104,21 @@ struct ContentView: View {
         }
     }
 
+    private var previewState: PetAttributes.ContentState {
+        .init(spriteName: selected, nickname: nickname, startDate: previewStart, animate: animate)
+    }
+
     private func start() async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             status = "Live Activities are turned off. Turn them on in Settings → Pocket Pal."
             return
         }
         await stopAll()
-        let state = PetAttributes.ContentState(spriteName: selected, nickname: nickname, startDate: Date())
+        let state = PetAttributes.ContentState(spriteName: selected, nickname: nickname, startDate: Date(), animate: animate)
         do {
             _ = try Activity.request(
                 attributes: PetAttributes(),
-                content: .init(state: state, staleDate: nil),
+                content: .init(state: state, staleDate: nil, relevanceScore: 100),
                 pushType: nil
             )
             status = "Your pal is out! Swipe home to see it in the Dynamic Island."

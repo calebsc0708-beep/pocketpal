@@ -23,6 +23,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import newTable
 from fontTools.ttLib.tables.sbixGlyph import Glyph as SbixGlyph
 from fontTools.ttLib.tables.sbixStrike import Strike
+from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 
 ROOT = Path(__file__).resolve().parent.parent
 SPRITES = ROOT / "Sprites"
@@ -33,6 +34,22 @@ UPM = 1000
 STRIKES = [32, 48, 64, 96, 128, 192]  # bitmap sizes in pixels; iOS picks the closest
 DIGITS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 EMPTY = {".notdef": None, "space": " ", "colon": ":", "hyphen": "-", "period": "."}
+SEPARATORS = ["space", "colon", "hyphen", "period"]
+
+# Every digit that has another character after it becomes a zero-width blank,
+# and separators are zero-width too. So "1:23:45" renders as ONE sprite: the
+# last digit (seconds). No clipping needed, and the text is exactly one sprite wide.
+FEATURES = """
+languagesystem DFLT dflt;
+languagesystem latn dflt;
+@DIGIT = [zero one two three four five six seven eight nine];
+@ANY = [zero one two three four five six seven eight nine space colon hyphen period];
+lookup HideAllButLast {
+    sub @DIGIT' @ANY by zw;
+} HideAllButLast;
+feature ccmp { lookup HideAllButLast; } ccmp;
+feature calt { lookup HideAllButLast; } calt;
+"""
 
 
 def safe(name: str) -> str:
@@ -73,7 +90,7 @@ def build_font(name: str, frame_paths, out_path: Path):
     side = frames[0].width
     frames = [f if f.width == side else f.resize((side, side), Image.NEAREST) for f in frames]
 
-    glyph_order = list(EMPTY.keys()) + DIGITS
+    glyph_order = list(EMPTY.keys()) + DIGITS + ["zw"]
     family = f"PocketPal {safe(name)}"
     ps_name = f"PocketPal-{safe(name)}"
 
@@ -86,14 +103,15 @@ def build_font(name: str, frame_paths, out_path: Path):
     empty = TTGlyphPen(None).glyph()
     fb.setupGlyf({g: empty for g in glyph_order})
     # Every glyph is a perfect square: advance = em = line height
-    fb.setupHorizontalMetrics({g: (UPM, 0) for g in glyph_order})
+    zero_width = set(SEPARATORS) | {"zw"}
+    fb.setupHorizontalMetrics({g: (0 if g in zero_width else UPM, 0) for g in glyph_order})
     fb.setupHorizontalHeader(ascent=UPM, descent=0, lineGap=0)
     fb.setupNameTable({"familyName": family, "styleName": "Regular",
                        "fullName": family, "psName": ps_name, "uniqueFontIdentifier": ps_name})
     fb.setupOS2(sTypoAscender=UPM, sTypoDescender=0, sTypoLineGap=0,
                 usWinAscent=UPM, usWinDescent=0, sxHeight=UPM // 2, sCapHeight=UPM,
                 fsType=0)
-    fb.setupPost(isFixedPitch=1)
+    fb.setupPost()
 
     sbix = newTable("sbix")
     sbix.version = 1
@@ -107,6 +125,7 @@ def build_font(name: str, frame_paths, out_path: Path):
                 imageData=png_bytes(frame, ppem), originOffsetX=0, originOffsetY=0)
         sbix.strikes[ppem] = strike
     fb.font["sbix"] = sbix
+    addOpenTypeFeaturesFromString(fb.font, FEATURES)
 
     fb.save(str(out_path))
     return ps_name

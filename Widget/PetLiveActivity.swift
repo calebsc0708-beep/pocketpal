@@ -9,32 +9,6 @@ struct PocketPalWidgetBundle: WidgetBundle {
     }
 }
 
-/// Shows the sprite. Animated sprites use the "frame font" trick:
-/// a live-ticking timer drawn in a font whose digits are animation frames,
-/// clipped so only the last digit (seconds) is visible.
-struct IslandSprite: View {
-    let state: PetAttributes.ContentState
-    let size: CGFloat
-
-    var body: some View {
-        let entry = Sprites.entry(named: state.spriteName)
-        let fontName = Sprites.fontName(for: state.spriteName)
-
-        if let entry, entry.isAnimated, UIFont(name: fontName, size: size) != nil {
-            Text(state.startDate, style: .timer)
-                .font(.custom(fontName, fixedSize: size))
-                .multilineTextAlignment(.trailing)
-                .lineLimit(1)
-                .fixedSize()
-                .frame(width: size, height: size, alignment: .trailing)
-                .clipped()
-        } else {
-            SpriteImage(stem: entry?.frames.first)
-                .frame(width: size, height: size)
-        }
-    }
-}
-
 struct PetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PetAttributes.self) { context in

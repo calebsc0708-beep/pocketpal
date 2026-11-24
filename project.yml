@@ -21,6 +21,8 @@ targets:
       - Shared
       - path: Sprites
         type: folder
+      - path: Fonts
+        type: folder
     info:
       path: Support/App-Info.plist
       properties:
