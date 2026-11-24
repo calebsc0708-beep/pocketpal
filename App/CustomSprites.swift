@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import Vision
 import CoreImage
+import ImageIO
 
 // MARK: - Image helpers
 
@@ -67,6 +68,56 @@ enum ImageTools {
         return UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             UIImage(cgImage: cropped).draw(in: CGRect(x: (side - cw) / 2, y: side - ch, width: cw, height: ch))
         }
+    }
+
+    /// Bounding box of non-transparent pixels (top-left origin), or nil if fully transparent.
+    static func alphaBox(_ cg: CGImage) -> CGRect? {
+        let w = cg.width, h = cg.height
+        var pixels = [UInt8](repeating: 0, count: w * h * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            guard let ctx = CGContext(data: buffer.baseAddress, width: w, height: h, bitsPerComponent: 8,
+                                      bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+            ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        }
+        var minX = w, minY = h, maxX = -1, maxY = -1
+        for y in 0..<h {
+            for x in 0..<w where pixels[(y * w + x) * 4 + 3] > 16 {
+                minX = min(minX, x); maxX = max(maxX, x)
+                minY = min(minY, y); maxY = max(maxY, y)
+            }
+        }
+        guard maxX >= minX, maxY >= minY else { return nil }
+        return CGRect(x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1)
+    }
+
+    /// Trims all frames with ONE shared box (so they don't jitter), then squares them.
+    static func trimTogether(_ images: [UIImage]) -> [UIImage] {
+        let cgs = images.compactMap(\.cgImage)
+        let boxes = cgs.compactMap(alphaBox)
+        guard let first = boxes.first else { return images }
+        let box = boxes.dropFirst().reduce(first) { $0.union($1) }
+        return cgs.compactMap { $0.cropping(to: box) }.map { cropped in
+            let cw = CGFloat(cropped.width), ch = CGFloat(cropped.height)
+            let side = max(cw, ch)
+            return UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
+                UIImage(cgImage: cropped).draw(in: CGRect(x: (side - cw) / 2, y: side - ch, width: cw, height: ch))
+            }
+        }
+    }
+
+    /// Splits an animated GIF into 2, 5 or 10 evenly spaced frames (whichever loops cleanly).
+    /// Returns nil if the data isn't an animated image.
+    static func gifFrames(_ data: Data) -> [UIImage]? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let count = CGImageSourceGetCount(source)
+        guard count > 1 else { return nil }
+        let keep = count >= 10 ? 10 : (count >= 5 ? 5 : 2)
+        let frames = (0..<keep).compactMap { i -> UIImage? in
+            guard let cg = CGImageSourceCreateImageAtIndex(source, i * count / keep, nil) else { return nil }
+            return normalized(UIImage(cgImage: cg), maxSide: 512)
+        }
+        return frames.count > 1 ? trimTogether(frames) : nil
     }
 
     static func resize(_ image: UIImage, side: Int, smooth: Bool) -> UIImage {
@@ -168,6 +219,9 @@ struct ImportSpriteView: View {
     @State private var pixelate = false
     @State private var grid = 32.0
     @State private var name = ""
+    @State private var gif: [UIImage] = []
+    @State private var shareItems: [URL] = []
+    @State private var showShare = false
 
     private var result: UIImage? {
         guard let base = (removeBackground ? cutout : nil) ?? original else { return nil }
@@ -181,6 +235,31 @@ struct ImportSpriteView: View {
                 Section {
                     PhotosPicker(selection: $item, matching: .images) {
                         Label(original == nil ? "Choose a photo" : "Choose a different photo", systemImage: "photo")
+                    }
+                }
+
+                if gif.count > 1 {
+                    Section {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(gif.indices, id: \.self) { i in
+                                    VStack(spacing: 4) {
+                                        SpriteImage(image: gif[i])
+                                            .padding(6)
+                                            .frame(width: 72, height: 72)
+                                            .background(RoundedRectangle(cornerRadius: 10).fill(.black))
+                                        Text("\(i + 1)").font(.caption2).foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                        Button { exportGIF() } label: {
+                            Label("Export \(gif.count) frames for GitHub", systemImage: "square.and.arrow.up")
+                        }
+                    } header: {
+                        Text("GIF: \(gif.count) frames")
+                    } footer: {
+                        Text("Save these to Files, then upload them to the Sprites folder on GitHub to animate in the island. Solid backgrounds are removed during the build. Below, you can also save frame 1 as a still sprite right now.")
                     }
                 }
 
@@ -237,6 +316,7 @@ struct ImportSpriteView: View {
             .onChange(of: item) { _, newItem in
                 Task { await load(newItem) }
             }
+            .sheet(isPresented: $showShare) { ActivityView(items: shareItems) }
         }
     }
 
@@ -244,7 +324,8 @@ struct ImportSpriteView: View {
         guard let newItem,
               let data = try? await newItem.loadTransferable(type: Data.self),
               let raw = UIImage(data: data) else { return }
-        let image = ImageTools.normalized(raw)
+        gif = ImageTools.gifFrames(data) ?? []
+        let image = ImageTools.normalized(gif.first ?? raw)
         original = image
         cutout = nil
         cutoutFailed = false
@@ -254,6 +335,20 @@ struct ImportSpriteView: View {
         cutout = lifted
         cutoutFailed = lifted == nil
         working = false
+    }
+
+    private func exportGIF() {
+        let cleaned = String(name.filter { $0.isASCII && ($0.isLetter || $0.isNumber) }).lowercased()
+        let base = cleaned.isEmpty || cleaned == "sprite" ? "gifpal" : cleaned
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("GIF-\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        var urls: [URL] = []
+        for (i, frame) in gif.enumerated() {
+            let url = dir.appendingPathComponent("\(base)_\(i + 1).png")
+            if let data = frame.pngData(), (try? data.write(to: url)) != nil { urls.append(url) }
+        }
+        shareItems = urls
+        showShare = !urls.isEmpty
     }
 }
 
