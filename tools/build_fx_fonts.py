@@ -42,6 +42,9 @@ PALETTES = {
     "valentine": [(255, 110, 150), (255, 180, 200), (240, 60, 90)],
 }
 BALLOON_ORIGIN, BALLOON_SIDE = (160, 48), 56
+# the wide room (rectangle widget) is 344 px wide: its extra bulbs past x 256 get their own strip font
+WIDE_W, STRIP_ORIGIN, STRIP_SIDE = 344, (256, 0), 88
+WIDE_BULBS = [(x, 14 + 3 + int(5 * abs(math.sin((x - 44) / 42 * math.pi))) + 1) for x in range(264, WIDE_W, 10)]
 
 
 def png(img):
@@ -81,18 +84,21 @@ def room_fx(time, weather):
     return build_font(name, strikes, OUT / f"{name}.ttf")
 
 
-def lights(palette_name):
+def lights(palette_name, strip=False):
     pal = PALETTES[palette_name]
     holiday = palette_name != "default"
     strikes = {}
+    W = WIDE_W if strip else 256
+    bulbs = WIDE_BULBS if strip else ambience.BULBS
+    first = len(ambience.BULBS) if strip else 0          # keep each bulb's twinkle phase in step
     for d in range(10):
-        ov = Image.new("RGBA", (256, 160), (0, 0, 0, 0)); px = ov.load()
+        ov = Image.new("RGBA", (W, 160), (0, 0, 0, 0)); px = ov.load()
         def put(x, y, c, a):
-            if 0 <= x < 256 and 0 <= y < 160 and a > 0:
+            if 0 <= x < W and 0 <= y < 160 and a > 0:
                 r, g, b, al = px[x, y]
                 na = a + al / 255 * (1 - a)
                 px[x, y] = tuple(int((c[k] * a + (r, g, b)[k] * al / 255 * (1 - a)) / max(na, 1e-6)) for k in range(3)) + (int(na * 255),)
-        for i, (x, y) in enumerate(ambience.BULBS):
+        for i, (x, y) in enumerate(bulbs, start=first):
             a = 0.5 + 0.5 * math.sin(2 * math.pi * 3 * d / 10 + i * 1.7)   # loops cleanly every 10 seconds
             c = pal[i % 3]
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 2), (-1, 1), (1, 1)]:
@@ -102,9 +108,10 @@ def lights(palette_name):
                 put(x, y, (255, 255, 255), 0.35 * a)
             else:
                 put(x, y, (255, 250, 230), 0.6 * a); put(x, y + 1, (255, 250, 230), 0.6 * a)
-        for ppem, im in upscale_square(ov, 256, (0, 0), (2, 4)).items():
+        sq = upscale_square(ov, STRIP_SIDE, STRIP_ORIGIN, (2, 4)) if strip else upscale_square(ov, 256, (0, 0), (2, 4))
+        for ppem, im in sq.items():
             strikes.setdefault(ppem, []).append(png(im))
-    name = f"PokePal-lights-{palette_name}"
+    name = f"PokePal-lights{'R' if strip else ''}-{palette_name}"
     return build_font(name, strikes, OUT / f"{name}.ttf")
 
 
@@ -129,6 +136,7 @@ def main():
             files.append(room_fx(t, w))
     for p in PALETTES:
         files.append(lights(p))
+        files.append(lights(p, strip=True))
     for hol, items in json.loads((ROOT / "tools" / "fx" / "balloons.json").read_text()).items():
         files.append(balloons(hol, items))
     plist = plistlib.loads(PLIST.read_bytes())

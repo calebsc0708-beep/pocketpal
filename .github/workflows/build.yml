@@ -63,6 +63,11 @@ jobs:
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/PocketPal.app Payload/
+          # Ad-hoc sign with the App Group entitlement so SideStore sets up the shared
+          # storage the widget uses to follow the pal you pick in the app.
+          codesign --force --sign - --entitlements Entitlements/PocketPalWidget.entitlements Payload/PocketPal.app/PlugIns/PocketPalWidget.appex
+          codesign --force --sign - --entitlements Entitlements/PocketPal.entitlements Payload/PocketPal.app
+          codesign -d --entitlements - Payload/PocketPal.app/PlugIns/PocketPalWidget.appex
           zip -qry PocketPal.ipa Payload
 
       - uses: actions/upload-artifact@v4

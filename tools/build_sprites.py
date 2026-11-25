@@ -350,6 +350,7 @@ def write_widget_plist(font_files):
         "CFBundleShortVersionString": "$(MARKETING_VERSION)",
         "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)",
         "NSExtension": {"NSExtensionPointIdentifier": "com.apple.widgetkit-extension"},
+        "ALTAppGroups": ["group.com.yourname.pocketpal"],   # SideStore fills in the real (renamed) group
         "UIAppFonts": [f"Fonts/{f}" for f in font_files],
     }
     SUPPORT.mkdir(exist_ok=True)

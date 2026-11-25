@@ -21,7 +21,8 @@ struct RoomWidgetIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "PokePal Room"
     static var description = IntentDescription("Your pal in its room, matching your time of day and weather.")
 
-    @Parameter(title: "Pal", default: .eevee) var pal: RoomPal
+    /// Leave empty to show the pal you picked in the app.
+    @Parameter(title: "Pal (empty = same as app)") var palOverride: RoomPal?
     @Parameter(title: "Motion", default: .activities) var motion: RoomMotion
 }
 
@@ -39,13 +40,18 @@ struct RoomEntry: TimelineEntry {
 
 struct RoomProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> RoomEntry {
-        RoomEntry(date: Date(), time: .day, weather: .clear, pal: .eevee, motion: .activities, slot: 0, timerStart: Date())
+        RoomEntry(date: Date(), time: .day, weather: .clear, pal: Self.pal(nil), motion: .activities, slot: 0, timerStart: Date())
+    }
+
+    /// The widget's own pick if set, otherwise the app's pal.
+    static func pal(_ override: RoomPal?) -> RoomPal {
+        override ?? SharedPal.species.flatMap(RoomPal.init(rawValue:)) ?? .eevee
     }
 
     func snapshot(for configuration: RoomWidgetIntent, in context: Context) async -> RoomEntry {
         let now = Date()
         return RoomEntry(date: now, time: WeatherSync.clockTime(now, sunrise: nil, sunset: nil), weather: .clear,
-                         pal: configuration.pal, motion: configuration.motion, slot: Self.slot(now), timerStart: now)
+                         pal: Self.pal(configuration.palOverride), motion: configuration.motion, slot: Self.slot(now), timerStart: now)
     }
 
     func timeline(for configuration: RoomWidgetIntent, in context: Context) async -> Timeline<RoomEntry> {
@@ -63,7 +69,7 @@ struct RoomProvider: AppIntentTimelineProvider {
             return RoomEntry(date: date,
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                              weather: snap?.weather ?? .clear,
-                             pal: configuration.pal, motion: configuration.motion,
+                             pal: Self.pal(configuration.palOverride), motion: configuration.motion,
                              slot: Self.slot(date), timerStart: now)
         }
         return Timeline(entries: entries, policy: .atEnd)
@@ -94,17 +100,22 @@ struct RoomWidgetView: View {
     var body: some View {
         GeometryReader { geo in
             // Fill the widget with the room, keeping the window, rug and bed in view.
-            let s = max(geo.size.width / 256, geo.size.height / 160)
+            let rw = roomWidth
+            let s = max(geo.size.width / rw, geo.size.height / 160)
             let focus = focusPoint
-            let ox = min(0, max(geo.size.width - 256 * s, geo.size.width / 2 - focus.x * s))
+            let ox = min(0, max(geo.size.width - rw * s, geo.size.width / 2 - focus.x * s))
             let oy = min(0, max(geo.size.height - 160 * s, geo.size.height / 2 - focus.y * s))
             room(scale: s)
-                .frame(width: 256 * s, height: 160 * s)
+                .frame(width: rw * s, height: 160 * s, alignment: .topLeading)
                 .offset(x: ox, y: oy)
         }
         .clipped()
         .containerBackground(for: .widget) { Color.black }
     }
+
+    /// The rectangle (medium) widget uses the wider room: same left 256 px, plus a reading corner on the right.
+    private var wide: Bool { family == .systemMedium }
+    private var roomWidth: CGFloat { wide ? 344 : 256 }
 
     private var lightsOn: Bool {
         let t = entry.time, w = entry.weather
@@ -131,8 +142,8 @@ struct RoomWidgetView: View {
             // squares: one view for both sizes — window, desk, shelf, fish tank, rug and the bed (x 64...224)
             return CGPoint(x: 144, y: 80)
         default:
-            // rectangle: fill the width and keep the top (ceiling, string lights, clock); trims the bottom of the floor
-            return CGPoint(x: 128, y: 64)
+            // rectangle: the wide room, centred, keeping the top (ceiling, string lights, clock)
+            return CGPoint(x: 172, y: 64)
         }
     }
     }
@@ -141,10 +152,10 @@ struct RoomWidgetView: View {
     private func room(scale s: CGFloat) -> some View {
         let night = entry.time == .night
         ZStack(alignment: .topLeading) {
-            Image(entry.time.roomImage(entry.weather))
+            Image(wide ? "roomwide_\(entry.time.rawValue)_\(entry.weather.rawValue)" : entry.time.roomImage(entry.weather))
                 .resizable()
                 .interpolation(.none)
-                .frame(width: 256 * s, height: 160 * s)
+                .frame(width: roomWidth * s, height: 160 * s)
 
             // the clock (it changes once a minute, with each timeline entry)
             PalRoomAmbience(time: entry.time, weather: entry.weather,
@@ -159,10 +170,11 @@ struct RoomWidgetView: View {
                 .frame(width: 256 * s, height: 160 * s)
 
             // string lights twinkling (holiday colors, or the usual warm ones in the evening)
-            if let holiday = RoomDecorations.lightHoliday(for: entry.date) {
-                fxFont("PokePal-lights-\(holiday)", origin: .zero, side: 256, scale: s)
-            } else if lightsOn {
-                fxFont("PokePal-lights-default", origin: .zero, side: 256, scale: s)
+            if let palette = RoomDecorations.lightHoliday(for: entry.date) ?? (lightsOn ? "default" : nil) {
+                fxFont("PokePal-lights-\(palette)", origin: .zero, side: 256, scale: s)
+                if wide {   // the extra bulbs along the wide room's right side
+                    fxFont("PokePal-lightsR-\(palette)", origin: CGPoint(x: 256, y: 0), side: 88, scale: s)
+                }
             }
             // bobbing balloons (lit like the room)
             if let set = RoomDecorations.balloons(for: entry.date) {
@@ -172,7 +184,7 @@ struct RoomWidgetView: View {
 
             if night {
                 // asleep under the covers, whatever the motion setting
-                PalSleepLayer(time: entry.time, weather: entry.weather, t: 0.5, scale: s)
+                PalSleepLayer(time: entry.time, weather: entry.weather, t: 0.5, scale: s, wide: wide)
                     .frame(width: 256 * s, height: 160 * s)
             } else {
                 pal(scale: s)

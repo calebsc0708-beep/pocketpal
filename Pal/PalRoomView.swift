@@ -312,14 +312,16 @@ struct PalSleepLayer: View {
     let weather: RoomWeather
     let t: Double
     let scale: CGFloat
+    /// The wide room (rectangle widget) has its own overlay, lit like that room.
+    var wide: Bool = false
 
-    static let lumpX: CGFloat = 205
-    static let coversOrigin = CGPoint(x: 160, y: 90), coversSize = CGSize(width: 96, height: 70)
+    static let lumpX: CGFloat = 216
+    static let coversOrigin = CGPoint(x: 204, y: 82), coversSize = CGSize(width: 36, height: 20)
 
     var body: some View {
         let breath = sin(t * 1.6) > 0 ? 1 : 0
         ZStack(alignment: .topLeading) {
-            Image("covers\(breath)_\(time.rawValue)_\(weather.rawValue)")
+            Image("covers\(wide ? "w" : "")\(breath)_\(time.rawValue)_\(weather.rawValue)")
                 .resizable()
                 .interpolation(.none)
                 .frame(width: Self.coversSize.width * scale, height: Self.coversSize.height * scale)
@@ -331,7 +333,7 @@ struct PalSleepLayer: View {
                     let p = (t / 3 + Double(i) / 3).truncatingRemainder(dividingBy: 1)
                     let size = 2 + i % 2 + Int((p * 2).rounded())
                     let x = Double(Self.lumpX) + 6 + (p * 10 + sin(p * 6 + Double(i)) * 1.5).rounded()
-                    let y = 88 - (p * 22).rounded()
+                    let y = 84 - (p * 22).rounded()
                     let a = min(1, p / 0.15) * min(1, (1 - p) / 0.3)
                     let color = Color(red: 1, green: 248 / 255, blue: 225 / 255).opacity(a)
                     func px(_ px: Double, _ py: Double) {

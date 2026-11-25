@@ -67,3 +67,16 @@ Drop PNG files into the `Sprites` folder.
 - Animation uses a workaround: a ticking timer drawn in a custom font whose digits are your frames. That limits it to 1 frame per second, and a future iOS update could break it. If it does, the sprite falls back to a still image.
 - The app plus its widget uses 2 of your free Apple ID's App IDs in SideStore.
 - To change sprites, edit the `Sprites` folder, push, and install the new build over the old one.
+
+## The room art
+
+`tools/room/room.py` draws the room (every piece of furniture is drawn in perspective toward the
+room's vanishing point). `cd tools/room && python3 render_all.py` renders all 20 time × weather looks
+for both the normal room (256 px, used in the app and the square widgets) and the wide room (344 px,
+used in the rectangle widget), plus the sleeping-lump overlays.
+
+## Widgets follow the app's pal
+
+Pick a pal in the app and the room and Lock Screen widgets switch to it (shared through an App Group,
+`group.com.yourname.pocketpal`; the build ad-hoc signs with that entitlement so SideStore sets it up).
+To pin a widget to a different pal, long-press it → Edit Widget → Pal.

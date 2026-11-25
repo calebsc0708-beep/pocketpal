@@ -33,6 +33,8 @@ targets:
         UIAppFonts: [PixelifySans-Regular.ttf, PixelifySans-Bold.ttf]
         NSLocationWhenInUseUsageDescription: "PokePal uses your rough location to match the room's weather and sunrise/sunset to where you are."
         NSSupportsLiveActivities: true
+        # SideStore renames app groups on install and writes the real names here
+        ALTAppGroups: [group.com.yourname.pocketpal]
         NSPhotoLibraryAddUsageDescription: Save your sprites to Photos.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     settings:

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import WidgetKit
 
 /// Which pal lives in the room, and its name. Saved on this device.
 @MainActor
@@ -15,6 +16,11 @@ final class PalSettings: ObservableObject {
         let saved = PalSpecies(rawValue: UserDefaults.standard.string(forKey: "pal.species") ?? "") ?? .eevee
         species = saved
         name = UserDefaults.standard.string(forKey: "pal.name") ?? saved.displayName
+        // make sure the widgets know the current pal (e.g. after an update)
+        if SharedPal.species != saved.rawValue {
+            SharedPal.save(saved.rawValue)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     /// Pick the room pal. Also makes it the Dynamic Island sprite, so they always match.
@@ -23,6 +29,9 @@ final class PalSettings: ObservableObject {
         if PalSpecies.allCases.map(\.displayName).contains(name) { name = species.displayName }
         self.species = species
         save()
+        // the room and Lock Screen widgets follow the app's pal
+        SharedPal.save(species.rawValue)
+        WidgetCenter.shared.reloadAllTimelines()
         if syncIsland {
             // same keys the Dynamic Island section reads with @AppStorage
             defaults.set(species.rawValue, forKey: "selectedSprite")

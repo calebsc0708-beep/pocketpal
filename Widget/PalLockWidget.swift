@@ -8,7 +8,8 @@ struct PalLockIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "PokePal"
     static var description = IntentDescription("Your pal on the Lock Screen.")
 
-    @Parameter(title: "Pal", default: .eevee) var pal: RoomPal
+    /// Leave empty to show the pal you picked in the app.
+    @Parameter(title: "Pal (empty = same as app)") var palOverride: RoomPal?
 }
 
 struct PalLockEntry: TimelineEntry {
@@ -21,11 +22,11 @@ struct PalLockEntry: TimelineEntry {
 
 struct PalLockProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> PalLockEntry {
-        PalLockEntry(date: Date(), pal: .eevee, time: .day, weather: .clear, temperature: 68)
+        PalLockEntry(date: Date(), pal: RoomProvider.pal(nil), time: .day, weather: .clear, temperature: 68)
     }
 
     func snapshot(for configuration: PalLockIntent, in context: Context) async -> PalLockEntry {
-        PalLockEntry(date: Date(), pal: configuration.pal,
+        PalLockEntry(date: Date(), pal: RoomProvider.pal(configuration.palOverride),
                      time: WeatherSync.clockTime(Date(), sunrise: nil, sunset: nil), weather: nil, temperature: nil)
     }
 
@@ -38,7 +39,7 @@ struct PalLockProvider: AppIntentTimelineProvider {
         // every 15 minutes for 2 hours (day/night can change), then ask again
         let entries = (0..<8).map { i -> PalLockEntry in
             let date = now.addingTimeInterval(Double(i) * 15 * 60)
-            return PalLockEntry(date: date, pal: configuration.pal,
+            return PalLockEntry(date: date, pal: RoomProvider.pal(configuration.palOverride),
                                 time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                                 weather: snap?.weather,
                                 temperature: snap.map { Int($0.temperature.rounded()) })
