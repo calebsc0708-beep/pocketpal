@@ -49,6 +49,7 @@ targets:
       - Shared
       # the room widget reuses these from the app
       - Pal/PalSpriteData.swift
+      - Pal/PalActivity.swift
       - Pal/PalRoomAmbience.swift
       - Pal/PalRoomView.swift
       - Pal/RoomLook.swift

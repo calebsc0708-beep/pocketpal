@@ -7,7 +7,8 @@ a running timer drawn in a font whose digits 0-9 are pictures. The seconds digit
 once a second, so the picture does too (10 pictures, 10-second loop).
 
 For each pal it builds:
-  PokePal-<pal>-idle   10 frames of the pal's idle animation (square, just the pal)
+  PokePal-<pal>-idle   10 frames of the pal's idle animation, front view (square, just the pal)
+  PokePal-<pal>-back   the same from behind (for activities where it faces away from you)
   PokePal-<pal>-hop    10 pictures of the pal standing at 10 spots on the room floor,
                        covering room x 20..180, y 0..160 (a 160x160 square of the room)
 
@@ -111,12 +112,13 @@ def png(img):
     b = io.BytesIO(); img.save(b, "PNG", optimize=True); return b.getvalue()
 
 
-def idle_font(species):
-    loop = sum(f["ms"] for f in FRAMES[species]["front"]["frames"])
-    frames = [frame_image(frame_at(species, "front", d * loop / 10)) for d in range(10)]
+def idle_font(species, clip="front"):
+    loop = sum(f["ms"] for f in FRAMES[species][clip]["frames"])
+    frames = [frame_image(frame_at(species, clip, d * loop / 10)) for d in range(10)]
     side = frames[0].width                        # 68
     strikes = {side * m: [png(f.resize((side * m, side * m), Image.NEAREST)) for f in frames] for m in (1, 2, 3, 4)}
-    return build_font(f"PokePal-{species}-idle", strikes, OUT / f"PokePal-{species}-idle.ttf")
+    name = f"PokePal-{species}-{'idle' if clip == 'front' else 'back'}"
+    return build_font(name, strikes, OUT / f"{name}.ttf")
 
 
 def hop_pictures(species, px_per_room):
@@ -153,9 +155,10 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     files = []
     for species in FRAMES:
-        files.append(idle_font(species))
+        files.append(idle_font(species, "front"))
+        files.append(idle_font(species, "back"))
         files.append(hop_font(species))
-        print(f"  {species}: idle + hop fonts")
+        print(f"  {species}: idle, back + hop fonts")
     plist = plistlib.loads(PLIST.read_bytes()) if PLIST.exists() else {}
     fonts = plist.get("UIAppFonts", [])
     fonts += [f"Fonts/{f}" for f in files if f"Fonts/{f}" not in fonts]

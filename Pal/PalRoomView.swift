@@ -21,12 +21,27 @@ final class PalWanderer: ObservableObject {
     private var idleUntil = Date().addingTimeInterval(1.5)
     private var lastTick = Date()
 
+    // Activities (see PalActivity): walk to one, hop up if it's on furniture, stay a while.
+    private var heading: PalActivity?        // walking to this activity's floor point
+    private var doing: PalActivity?          // currently doing this one (at its perch)
+    private var lastActivity: PalActivity?
+    private struct Jump { let from: CGPoint; let to: CGPoint; let fromSize: CGFloat; let toSize: CGFloat; let start: Date; let landOn: PalActivity? }
+    private var jump: Jump?
+    /// Size override (canvas size in room px) while perched or mid-hop.
+    private var perchSize: CGFloat?
+
     /// Walking speed in room pixels per second (slower at the back of the room, for depth).
     private let baseSpeed: CGFloat = 18
+    private let jumpTime: TimeInterval = 0.45
 
     /// How big the pal is drawn relative to the room art; it shrinks as it walks toward the back wall.
     var depthScale: CGFloat {
-        let t = (position.y - Self.floor.minY) / Self.floor.height   // 0 = back wall, 1 = front
+        if let perchSize { return perchSize / 68 }
+        return Self.floorScale(position)
+    }
+
+    static func floorScale(_ p: CGPoint) -> CGFloat {
+        let t = (p.y - floor.minY) / floor.height   // 0 = back wall, 1 = front
         // (52/68 keeps pals at the same size as before the canvas grew to fit bigger sprites)
         return (0.48 + 0.16 * max(0, min(1, t))) * 52 / 68
     }
@@ -35,8 +50,18 @@ final class PalWanderer: ObservableObject {
         let dt = min(now.timeIntervalSince(lastTick), 0.1)
         lastTick = now
 
+        if let j = jump {                                         // mid-hop onto / off furniture
+            let p = min(1, now.timeIntervalSince(j.start) / jumpTime)
+            let k = CGFloat(p)
+            let lift = CGFloat(sin(p * .pi)) * 14
+            position = CGPoint(x: j.from.x + (j.to.x - j.from.x) * k, y: j.from.y + (j.to.y - j.from.y) * k - lift)
+            perchSize = j.fromSize + (j.toSize - j.fromSize) * k
+            if p >= 1 { land(j, now) }
+            return
+        }
+
         guard let target else {
-            if now >= idleUntil { pickTarget() }
+            if now >= idleUntil { next(now) }
             return
         }
 
@@ -53,26 +78,90 @@ final class PalWanderer: ObservableObject {
         }
     }
 
+    /// Done idling: hop down from furniture if needed, then pick what's next.
+    private func next(_ now: Date) {
+        if let act = doing {
+            doing = nil
+            if act.isUp {
+                startJump(to: act.floor, toSize: Self.floorScale(act.floor) * 68, landOn: nil, now)
+                return
+            }
+            perchSize = nil
+        }
+        // About 40% of the time go do an activity, otherwise wander the floor.
+        if Double.random(in: 0..<1) < 0.4 {
+            let choices = [PalActivity.window, .music, .fish, PalActivity.rug.randomElement()!].filter { $0 != lastActivity }
+            let act = choices.randomElement()!
+            heading = act
+            walk(to: act.floor)
+        } else {
+            pickTarget()
+        }
+    }
+
+    private func walk(to t: CGPoint) {
+        target = t
+        isWalking = true
+        face(dx: t.x - position.x, dy: t.y - position.y)
+    }
+
     private func pickTarget() {
         let f = Self.floor
         var t: CGPoint
         repeat {
             t = CGPoint(x: .random(in: f.minX...f.maxX), y: .random(in: f.minY...f.maxY))
         } while hypot(t.x - position.x, t.y - position.y) < 25   // avoid tiny shuffles
-        target = t
-        isWalking = true
-        face(dx: t.x - position.x, dy: t.y - position.y)
+        walk(to: t)
     }
 
     private func arrive(_ now: Date) {
         target = nil
         isWalking = false
+        if let act = heading {
+            heading = nil
+            if act.isUp {
+                startJump(to: act.perch, toSize: act.size, landOn: act, now)
+            } else {
+                begin(act, now)
+            }
+            return
+        }
         idleUntil = now.addingTimeInterval(.random(in: 2.5...6))
         // Turn back around to face the viewer while idling.
         if showingBack {
             showingBack = false
             flipped = needsFlip(movingRight: flippedMovingRight, clip: species.front)
         }
+    }
+
+    private func startJump(to: CGPoint, toSize: CGFloat, landOn: PalActivity?, _ now: Date) {
+        let fromSize = perchSize ?? Self.floorScale(position) * 68
+        face(dx: to.x - position.x, dy: to.y - position.y)
+        jump = Jump(from: position, to: to, fromSize: fromSize, toSize: toSize, start: now, landOn: landOn)
+    }
+
+    private func land(_ j: Jump, _ now: Date) {
+        jump = nil
+        position = j.to
+        if let act = j.landOn {
+            begin(act, now)
+        } else {                                                   // back on the floor
+            perchSize = nil
+            showingBack = false
+            flipped = needsFlip(movingRight: flippedMovingRight, clip: species.front)
+            idleUntil = now.addingTimeInterval(.random(in: 1...2.5))
+        }
+    }
+
+    /// Settle into an activity: face the right way and stay for a while.
+    private func begin(_ act: PalActivity, _ now: Date) {
+        doing = act
+        lastActivity = act
+        perchSize = act.size
+        position = act.perch
+        showingBack = act.back
+        flipped = act.flip
+        idleUntil = now.addingTimeInterval(.random(in: 10...20))
     }
 
     private var flippedMovingRight = false

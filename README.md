@@ -7,16 +7,17 @@ weather (clouds, rain, snow, storms, sunrise and sunset). The original Dynamic I
 
 ## The Room tab
 - Pick your pal (Eevee, Pikachu or Minccino) and its name in **Settings** (gear button).
+- Your pal wanders the floor and every so often goes to do an activity, hopping up onto the window seat or the bed.
 - Weather comes from Open-Meteo using your rough location (allow location when asked). Without it, the room follows the clock.
 - Code and art live in the `Pal` folder: Swift files, `PalSprites.xcassets` (pals, rooms, quilt, app icon) and the Pixelify Sans font.
 
 ## Room widget (medium and large)
 Add **PokePal Room** from the widget gallery, then long-press it → **Edit Widget** to choose the pal and motion:
-- **Still**: the pal stands somewhere new every 5 minutes
-- **Idle**: plays the pal's animation in place, once a second
+- **Activities**: every 5 minutes the pal does something new (looks out the window, listens to the record
+  player, watches the fish from the bed, or hangs out on the rug), animating once a second
 - **Hop around**: the pal hops between 10 spots on the rug, once a second
 
-The room's wall clock updates every minute. Home Screen widgets can't really animate, so Idle and Hop use the same font trick as the Dynamic Island
+The room's wall clock updates every minute. Home Screen widgets can't really animate, so the once-a-second motion uses the same font trick as the Dynamic Island
 (`tools/build_room_fonts.py` builds those fonts during the GitHub build). It's 1 frame a second, and a future
 iOS update could break it; if it does, the widget falls back to a still picture. At night the pal is asleep
 under the covers in every mode.

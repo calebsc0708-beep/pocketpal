@@ -16,12 +16,11 @@ enum RoomPal: String, AppEnum {
 }
 
 enum RoomMotion: String, AppEnum {
-    case still, idle, hop
+    case activities, hop
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Motion"
     static var caseDisplayRepresentations: [RoomMotion: DisplayRepresentation] = [
-        .still: "Still (new spot every 5 min)",
-        .idle: "Idle (animates once a second)",
+        .activities: "Activities (new one every 5 min)",
         .hop: "Hop around (once a second)",
     ]
 }
@@ -31,7 +30,7 @@ struct RoomWidgetIntent: WidgetConfigurationIntent {
     static var description = IntentDescription("Your pal in its room, matching your time of day and weather.")
 
     @Parameter(title: "Pal", default: .eevee) var pal: RoomPal
-    @Parameter(title: "Motion", default: .idle) var motion: RoomMotion
+    @Parameter(title: "Motion", default: .activities) var motion: RoomMotion
 }
 
 // MARK: - Timeline
@@ -42,19 +41,19 @@ struct RoomEntry: TimelineEntry {
     let weather: RoomWeather
     let pal: RoomPal
     let motion: RoomMotion
-    let spot: Int          // which of the 10 floor spots (Still mode)
+    let slot: Int          // which 5-minute slot (picks the activity)
     let timerStart: Date   // drives the 1-frame-per-second fonts
 }
 
 struct RoomProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> RoomEntry {
-        RoomEntry(date: Date(), time: .day, weather: .clear, pal: .eevee, motion: .still, spot: 0, timerStart: Date())
+        RoomEntry(date: Date(), time: .day, weather: .clear, pal: .eevee, motion: .activities, slot: 0, timerStart: Date())
     }
 
     func snapshot(for configuration: RoomWidgetIntent, in context: Context) async -> RoomEntry {
         let now = Date()
         return RoomEntry(date: now, time: WeatherSync.clockTime(now, sunrise: nil, sunset: nil), weather: .clear,
-                         pal: configuration.pal, motion: configuration.motion, spot: 0, timerStart: now)
+                         pal: configuration.pal, motion: configuration.motion, slot: Self.slot(now), timerStart: now)
     }
 
     func timeline(for configuration: RoomWidgetIntent, in context: Context) async -> Timeline<RoomEntry> {
@@ -67,18 +66,19 @@ struct RoomProvider: AppIntentTimelineProvider {
         // A new picture every minute for the next 2 hours, so the wall clock stays right.
         // Planned entries don't use up the widget's refresh budget; iOS asks again at the end.
         let firstMinute = Calendar.current.dateInterval(of: .minute, for: now)?.end ?? now
-        let seed = Int.random(in: 0..<10)
         let dates = [now] + (0..<120).map { firstMinute.addingTimeInterval(Double($0) * 60) }
         let entries = dates.map { date -> RoomEntry in
-            let block = Int(date.timeIntervalSince(now) / (5 * 60))    // Still mode: new spot every 5 min
             return RoomEntry(date: date,
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                              weather: snap?.weather ?? .clear,
                              pal: configuration.pal, motion: configuration.motion,
-                             spot: (seed + block * 3) % 10, timerStart: now)
+                             slot: Self.slot(date), timerStart: now)
         }
         return Timeline(entries: entries, policy: .atEnd)
     }
+
+    /// 5-minute slots on the clock, so the activity changes at :00, :05, :10...
+    static func slot(_ date: Date) -> Int { Int(date.timeIntervalSinceReferenceDate / 300) }
 }
 
 // MARK: - View
@@ -154,39 +154,35 @@ struct RoomWidgetView: View {
                     .position(x: (RoomWidgetGeometry.hopOrigin.x + RoomWidgetGeometry.hopSide / 2) * s,
                               y: (RoomWidgetGeometry.hopOrigin.y + RoomWidgetGeometry.hopSide / 2) * s)
             } else {
-                stillPal(species, spot: entry.spot, scale: s)
+                activityPal(species, PalActivity.forSlot(entry.slot), scale: s)
             }
-        case .idle:
-            let font = "PokePal-\(species.rawValue)-idle"
-            let side = RoomWidgetGeometry.palSize * s
-            let feet = RoomWidgetGeometry.spot(2)                  // front of the rug
-            if Sprites.hasFont(font, size: side) {
-                Text(entry.timerStart, style: .timer)
-                    .font(.custom(font, fixedSize: side))
-                    .lineLimit(1)
-                    .frame(width: side, height: side)
-                    .position(x: feet.x * s, y: feet.y * s - side / 2)
-            } else {
-                stillPal(species, spot: 2, scale: s)
-            }
-        case .still:
-            stillPal(species, spot: entry.spot, scale: s)
+        case .activities:
+            activityPal(species, PalActivity.forSlot(entry.slot), scale: s)
         }
     }
 
-    /// One frame of the pal at a floor spot, facing a random-but-stable way.
-    private func stillPal(_ species: PalSpecies, spot: Int, scale s: CGFloat) -> some View {
-        let feet = RoomWidgetGeometry.spot(spot)
-        let side = RoomWidgetGeometry.palSize * s
-        let frames = species.front.frames
-        let frame = frames[(spot * 7) % frames.count].image
-        let faceRight = spot % 2 == 0
-        return Image(frame)
-            .resizable()
-            .interpolation(.none)
-            .frame(width: side, height: side)
-            .scaleEffect(x: faceRight ? -1 : 1, y: 1)            // front art faces left
-            .position(x: feet.x * s, y: feet.y * s - side / 2)
+    /// The pal doing an activity, animating once a second (font trick) or as a still frame if fonts aren't available.
+    @ViewBuilder
+    private func activityPal(_ species: PalSpecies, _ act: PalActivity, scale s: CGFloat) -> some View {
+        let side = act.size * s
+        let font = "PokePal-\(species.rawValue)-\(act.back ? "back" : "idle")"
+        let x = act.perch.x * s
+        let y = act.perch.y * s - side / 2
+        if Sprites.hasFont(font, size: side) {
+            Text(entry.timerStart, style: .timer)
+                .font(.custom(font, fixedSize: side))
+                .lineLimit(1)
+                .frame(width: side, height: side)
+                .scaleEffect(x: act.flip ? -1 : 1, y: 1)
+                .position(x: x, y: y)
+        } else {
+            Image((act.back ? species.back : species.front).frames[0].image)
+                .resizable()
+                .interpolation(.none)
+                .frame(width: side, height: side)
+                .scaleEffect(x: act.flip ? -1 : 1, y: 1)
+                .position(x: x, y: y)
+        }
     }
 }
 
