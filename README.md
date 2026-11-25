@@ -31,7 +31,6 @@ Drop PNG files into the `Sprites` folder.
 - **Animated sprite:** numbered frames, e.g. `pikachu_1.png`, `pikachu_2.png`. The frames change once per second.
   2, 5 or 10 frames loop perfectly. Other counts hiccup once every 10 seconds.
 - Square, small pixel sprites with transparent backgrounds look best (around 32–128 px). All frames should be the same size.
-- `mochi_1.png` / `mochi_2.png` are a placeholder critter. Delete them if you don't want them.
 
 ## 2. Build the .ipa on GitHub (no Mac needed)
 1. Create a new repository on github.com and upload everything in this folder, including the hidden `.github` folder. Use GitHub Desktop or `git push`; the web uploader can skip hidden folders.
