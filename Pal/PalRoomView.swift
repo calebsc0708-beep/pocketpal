@@ -90,8 +90,9 @@ final class PalWanderer: ObservableObject {
         }
         // About 40% of the time go do an activity, otherwise wander the floor.
         if Double.random(in: 0..<1) < 0.4 {
-            let choices = [PalActivity.window, .music, .fish, PalActivity.rug.randomElement()!].filter { $0 != lastActivity }
-            let act = choices.randomElement()!
+            let all: [PalActivity] = [.window, .music, .fish, PalActivity.rug.randomElement() ?? PalActivity.rug[0]]
+            let choices: [PalActivity] = all.filter { $0 != lastActivity }
+            let act: PalActivity = choices.randomElement() ?? .music
             heading = act
             walk(to: act.floor)
         } else {
