@@ -19,6 +19,7 @@ targets:
     sources:
       - App
       - Shared
+      - Pal
       - path: Generated/Sprites
         type: folder
       - path: Generated/Fonts
@@ -26,14 +27,17 @@ targets:
     info:
       path: Support/App-Info.plist
       properties:
-        CFBundleDisplayName: Pocket Pal
+        CFBundleDisplayName: PokePal
         UILaunchScreen: {}
+        UIAppFonts: [PixelifySans-Regular.ttf, PixelifySans-Bold.ttf]
+        NSLocationWhenInUseUsageDescription: "PokePal uses your rough location to match the room's weather and sunrise/sunset to where you are."
         NSSupportsLiveActivities: true
         NSPhotoLibraryAddUsageDescription: Save your sprites to Photos.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yourname.pocketpal
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - target: PocketPalWidget
     scheme: {}

@@ -1,4 +1,17 @@
-# Pocket Pal
+# PokePal
+
+A cozy pixel room where your pal lives: it wanders around, sleeps under the covers when it's tired,
+and you feed it berries that your trainer throws in from the side. The room follows your real time of
+day and weather. The original Dynamic Island sprite feature is still here, in the **Island** tab.
+
+## The Home tab
+- Pick your pal (Eevee, Pikachu or Minccino) and whether you're a boy or girl trainer in **Settings** (gear button).
+- Needs (Hunger, Happy, Energy, Clean) drop over real time, even while the app is closed.
+- **Feed** with Oran, Sitrus or Leppa berries (Black/White-style effects). Long-press a berry to buy more or give it to hold.
+- Your pal goes to sleep by itself when Energy runs low, and you get notifications when it's hungry, sleepy, wants to play or needs a bath.
+- Weather comes from Open-Meteo using your rough location (allow location when asked). Without it, the room follows the clock.
+- All of this lives in the `Pal` folder: Swift code, `PalSprites.xcassets` (pals, rooms, berries, trainers, quilt, app icon) and the Pixelify Sans font.
+
 
 Puts a little sprite of your choice in your iPhone's Dynamic Island (iPhone 14 Pro or newer).
 

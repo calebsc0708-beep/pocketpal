@@ -4,7 +4,7 @@ import ActivityKit
 @main
 struct PocketPalApp: App {
     var body: some Scene {
-        WindowGroup { ContentView() }
+        WindowGroup { RootView() }
     }
 }
 

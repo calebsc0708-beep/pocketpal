@@ -1,0 +1,16 @@
+{
+  "images": [
+    {
+      "filename": "covers1_day_snow.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  },
+  "properties": {
+    "compression-type": "lossless",
+    "preserves-vector-representation": false
+  }
+}
