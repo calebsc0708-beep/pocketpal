@@ -17,6 +17,9 @@ struct PalRoomAmbience: View {
     let weather: RoomWeather
     let t: Double
     var palAsleep: Bool = false
+    /// Time shown on the wall clock. The widget passes each entry's time (it draws ahead of time);
+    /// the app leaves it nil to use the real time.
+    var clock: Date? = nil
 
     var body: some View {
         Canvas { ctx, size in
@@ -190,7 +193,7 @@ struct PalRoomAmbience: View {
             }
 
             // ---- digital clock with blinking colon (your phone's time) ----
-            let now = Calendar.current.dateComponents([.hour, .minute, .second], from: Date())
+            let now = Calendar.current.dateComponents([.hour, .minute, .second], from: clock ?? Date())
             let hh = now.hour ?? 0, mm = now.minute ?? 0
             let digits = [hh / 10, hh % 10, mm / 10, mm % 10]
             let xs: [Double] = [216, 220, 226, 230]

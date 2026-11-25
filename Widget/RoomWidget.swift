@@ -64,14 +64,18 @@ struct RoomProvider: AppIntentTimelineProvider {
             snap = await WeatherSync.fetchSnapshot(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
         }
         let now = Date()
-        // A new picture every 15 minutes for the next 2 hours, then iOS asks again.
-        let entries = (0..<8).map { i -> RoomEntry in
-            let date = now.addingTimeInterval(Double(i) * 15 * 60)
+        // A new picture every minute for the next 2 hours, so the wall clock stays right.
+        // Planned entries don't use up the widget's refresh budget; iOS asks again at the end.
+        let firstMinute = Calendar.current.dateInterval(of: .minute, for: now)?.end ?? now
+        let seed = Int.random(in: 0..<10)
+        let dates = [now] + (0..<120).map { firstMinute.addingTimeInterval(Double($0) * 60) }
+        let entries = dates.map { date -> RoomEntry in
+            let block = Int(date.timeIntervalSince(now) / (15 * 60))   // Still mode: new spot every 15 min
             return RoomEntry(date: date,
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                              weather: snap?.weather ?? .clear,
                              pal: configuration.pal, motion: configuration.motion,
-                             spot: Int.random(in: 0..<10), timerStart: now)
+                             spot: (seed + block * 3) % 10, timerStart: now)
         }
         return Timeline(entries: entries, policy: .atEnd)
     }
@@ -121,7 +125,8 @@ struct RoomWidgetView: View {
                 .frame(width: 256 * s, height: 160 * s)
 
             PalRoomAmbience(time: entry.time, weather: entry.weather,
-                            t: entry.date.timeIntervalSinceReferenceDate, palAsleep: night)
+                            t: entry.date.timeIntervalSinceReferenceDate, palAsleep: night,
+                            clock: entry.date)
                 .frame(width: 256 * s, height: 160 * s)
 
             if night {

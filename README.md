@@ -12,11 +12,11 @@ weather (clouds, rain, snow, storms, sunrise and sunset). The original Dynamic I
 
 ## Room widget (medium and large)
 Add **PokePal Room** from the widget gallery, then long-press it → **Edit Widget** to choose the pal and motion:
-- **Still**: the pal stands somewhere new each time the widget refreshes (about every 15 minutes)
+- **Still**: the pal stands somewhere new every 15 minutes
 - **Idle**: plays the pal's animation in place, once a second
 - **Hop around**: the pal hops between 10 spots on the rug, once a second
 
-Home Screen widgets can't really animate, so Idle and Hop use the same font trick as the Dynamic Island
+The room's wall clock updates every minute. Home Screen widgets can't really animate, so Idle and Hop use the same font trick as the Dynamic Island
 (`tools/build_room_fonts.py` builds those fonts during the GitHub build). It's 1 frame a second, and a future
 iOS update could break it; if it does, the widget falls back to a still picture. At night the pal is asleep
 under the covers in every mode.
