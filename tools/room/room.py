@@ -228,12 +228,15 @@ R(155, 72, 157, 77, CREAM); (px(156, 71, (255, 200, 90), True), px(156, 70, (255
 R(162, 76, 170, 77, WOOD_D); R(165, 67, 166, 76, WOOD_D)
 P([(159, 67), (172, 67), (169, 59), (162, 59)], LAMP if LAMP_ON else (236, 214, 176), LAMP_ON)
 # chair (back toward viewer)
+_before_chair = img.copy()
 C0, C1 = 0.95, 1.4        # chair from 0.95 m to 1.4 m out from the wall
 for lx in (133, 151): block(lx, 87, lx + 2, FL, C0, C0 + 0.05, WOOD_D)                 # back legs (far)
 block(132, 86, 154, 88, C0, C1, WOOD, top=WOOD_L, side=WOOD_D)                         # seat
 for lx in (133, 151): block(lx, 66, lx + 2, FL, C1 - 0.05, C1, WOOD_D, side=(84, 52, 34))   # front legs + back posts
 block(132, 66, 154, 69, C1 - 0.06, C1, WOOD, top=WOOD_L)                               # top rail
 block(134, 74, 152, 76, C1 - 0.05, C1, WOOD_D)                                         # middle rail
+# the chair's outline, so holiday decorations on the desk can be tucked behind it
+CHAIR_MASK = Image.fromarray(((np.asarray(img).astype(int) - np.asarray(_before_chair).astype(int)) != 0).any(axis=2).astype(np.uint8) * 255)
 
 # ---------- right side: (wide room) picture, floor lamp, nightstand; then the bed ----------
 BR = 262 if WIDE else W + 24          # bed's right edge, at the wall
@@ -620,3 +623,4 @@ if TIME == "day" and WEATHER == "clear":
     wm_ = np.asarray(wmask) > 0
     same = (np.abs(fin - np.round(np.asarray(sky).astype(float) / 8) * 8).max(axis=2) <= 8) & wm_
     Image.fromarray((same * 255).astype(np.uint8)).save(f"{OUT}/glass_mask.png")
+    CHAIR_MASK.save(f"{OUT}/chair_mask.png")
