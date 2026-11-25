@@ -1,0 +1,54 @@
+{
+ "newyear": [
+  {
+   "image": "balloon_newyear_0",
+   "x": 170,
+   "y": 64,
+   "w": 15,
+   "h": 39,
+   "phase": 0.0
+  },
+  {
+   "image": "balloon_newyear_1",
+   "x": 179,
+   "y": 58,
+   "w": 12,
+   "h": 39,
+   "phase": 2.1
+  },
+  {
+   "image": "balloon_newyear_2",
+   "x": 186,
+   "y": 66,
+   "w": 15,
+   "h": 39,
+   "phase": 4.2
+  }
+ ],
+ "valentine": [
+  {
+   "image": "balloon_valentine_0",
+   "x": 171,
+   "y": 60,
+   "w": 12,
+   "h": 39,
+   "phase": 0.0
+  },
+  {
+   "image": "balloon_valentine_1",
+   "x": 181,
+   "y": 54,
+   "w": 12,
+   "h": 39,
+   "phase": 2.1
+  },
+  {
+   "image": "balloon_valentine_2",
+   "x": 190,
+   "y": 62,
+   "w": 12,
+   "h": 39,
+   "phase": 4.2
+  }
+ ]
+}

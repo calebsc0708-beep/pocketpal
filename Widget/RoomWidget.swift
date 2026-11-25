@@ -106,6 +106,24 @@ struct RoomWidgetView: View {
         .containerBackground(for: .widget) { Color.black }
     }
 
+    private var lightsOn: Bool {
+        let t = entry.time, w = entry.weather
+        return t == .night || t == .sunset || ((w == .storm || w == .rain) && t != .day)
+    }
+
+    /// A once-a-second effect font: a square of the room, `side` room px wide, with its top-left at `origin`.
+    @ViewBuilder
+    private func fxFont(_ font: String, origin: CGPoint, side: CGFloat, scale s: CGFloat) -> some View {
+        let size: CGFloat = side * s
+        if Sprites.hasFont(font, size: size) {
+            Text(entry.timerStart, style: .timer)
+                .font(.custom(font, fixedSize: size))
+                .lineLimit(1)
+                .frame(width: size, height: size)
+                .position(x: (origin.x + side / 2) * s, y: (origin.y + side / 2) * s)
+        }
+    }
+
     /// Which part of the room to keep centred (room px). Medium shows nearly the whole width.
     private var focusPoint: CGPoint {
         let night = entry.time == .night
@@ -133,13 +151,29 @@ struct RoomWidgetView: View {
                 .interpolation(.none)
                 .frame(width: 256 * s, height: 160 * s)
 
+            // the clock (it changes once a minute, with each timeline entry)
             PalRoomAmbience(time: entry.time, weather: entry.weather,
                             t: entry.date.timeIntervalSinceReferenceDate, palAsleep: night,
-                            clock: entry.date)
+                            clock: entry.date, onlyClock: true)
                 .frame(width: 256 * s, height: 160 * s)
+
+            // everything else that moves, once a second (clouds, rain/snow, notes, fish, candle, plant...)
+            fxFont("PokePal-fx-\(entry.time.rawValue)-\(entry.weather.rawValue)", origin: .zero, side: 256, scale: s)
 
             RoomDecorationLayer(date: entry.date, time: entry.time, weather: entry.weather)
                 .frame(width: 256 * s, height: 160 * s)
+
+            // string lights twinkling (holiday colors, or the usual warm ones in the evening)
+            if let holiday = RoomDecorations.lightHoliday(for: entry.date) {
+                fxFont("PokePal-lights-\(holiday)", origin: .zero, side: 256, scale: s)
+            } else if lightsOn {
+                fxFont("PokePal-lights-default", origin: .zero, side: 256, scale: s)
+            }
+            // bobbing balloons (lit like the room)
+            if let set = RoomDecorations.balloons(for: entry.date) {
+                fxFont("PokePal-balloons-\(set.holiday)", origin: CGPoint(x: 160, y: 48), side: 56, scale: s)
+                    .colorMultiply(RoomLook.of(entry.time, entry.weather).palColor)
+            }
 
             if night {
                 // asleep under the covers, whatever the motion setting

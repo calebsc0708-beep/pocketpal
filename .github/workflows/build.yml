@@ -26,6 +26,7 @@ jobs:
           .venv/bin/python tools/build_pals.py
           .venv/bin/python tools/make_fonts.py
           .venv/bin/python tools/build_room_fonts.py
+          .venv/bin/python tools/build_fx_fonts.py
 
       - name: Generate Xcode project
         run: xcodegen generate

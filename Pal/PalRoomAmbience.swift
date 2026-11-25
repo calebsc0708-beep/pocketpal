@@ -20,6 +20,10 @@ struct PalRoomAmbience: View {
     /// Time shown on the wall clock. The widget passes each entry's time (it draws ahead of time);
     /// the app leaves it nil to use the real time.
     var clock: Date? = nil
+    /// Holiday string-light colors (lights stay on all day while set). nil = normal warm lights in the evening.
+    var lightColors: [RoomDecorations.RGB]? = nil
+    /// Widget: draw only the clock. Everything else that moves comes from its once-a-second effect fonts.
+    var onlyClock: Bool = false
 
     var body: some View {
         Canvas { ctx, size in
@@ -40,6 +44,7 @@ struct PalRoomAmbience: View {
                 glass.addRect(rect(Double(x0), Double(y), Double(x1), Double(y)))
             }
 
+            if !onlyClock {
             // ---- clouds drifting across the window (behind the trees) ----
             ctx.drawLayer { w in
                 w.clip(to: glass)
@@ -107,14 +112,21 @@ struct PalRoomAmbience: View {
             }
 
             // ---- string lights twinkle ----
-            if lightsOn {
-                let colors: [(Double, Double, Double)] = [(255, 200, 120), (255, 170, 140), (255, 226, 150)]
+            if lightsOn || lightColors != nil {
+                let holiday: Bool = lightColors != nil
+                let colors: [(Double, Double, Double)] = lightColors ?? [(255, 200, 120), (255, 170, 140), (255, 226, 150)]
                 for (i, b) in Self.bulbs.enumerated() {
-                    let a = 0.5 + 0.5 * sin(t * 2.2 + Double(i) * 1.7)
+                    let a: Double = 0.5 + 0.5 * sin(t * 1.885 + Double(i) * 1.7)
+                    let c = colors[i % 3]
                     for (dx, dy) in [(-1.0, 0.0), (1, 0), (0, -1), (0, 2), (-1, 1), (1, 1)] {
-                        dot(b.x + dx, b.y + dy, colors[i % 3], 0.35 * a)
+                        dot(b.x + dx, b.y + dy, c, 0.35 * a)
                     }
-                    dot(b.x, b.y, (255, 250, 230), 0.6 * a); dot(b.x, b.y + 1, (255, 250, 230), 0.6 * a)
+                    if holiday {
+                        dot(b.x, b.y, c, 1); dot(b.x, b.y + 1, c, 1)          // recolor the bulb itself
+                        dot(b.x, b.y, (255, 255, 255), 0.35 * a)
+                    } else {
+                        dot(b.x, b.y, (255, 250, 230), 0.6 * a); dot(b.x, b.y + 1, (255, 250, 230), 0.6 * a)
+                    }
                 }
             }
 
@@ -192,6 +204,8 @@ struct PalRoomAmbience: View {
                 dot(206 + (sin(p * 12) > 0 ? 1 : 0), (50 - p * 7).rounded(.down), (220, 240, 250), 0.8 * (1 - p * 0.5))
             }
 
+            }   // end of !onlyClock
+
             // ---- digital clock with blinking colon (your phone's time) ----
             let now = Calendar.current.dateComponents([.hour, .minute, .second], from: clock ?? Date())
             let hh = now.hour ?? 0, mm = now.minute ?? 0
@@ -208,7 +222,7 @@ struct PalRoomAmbience: View {
             if (now.second ?? 0) % 2 == 0 { dot(224, 48, lcd, 1); dot(224, 50, lcd, 1) }
 
             // ---- lightning brightens the whole room for a moment ----
-            if lightning {
+            if lightning && !onlyClock {
                 ctx.fill(Path(CGRect(origin: .zero, size: size)),
                          with: .color(Color(red: 220 / 255, green: 225 / 255, blue: 1).opacity(40.0 / 255)))
             }

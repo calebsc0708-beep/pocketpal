@@ -10,8 +10,9 @@ page, under the room.
 - Your pal wanders the floor and every so often goes to do an activity, hopping up onto the window seat or the bed.
   Tap it to make it hop. It's lit like the room, so it gets warmer at sunset and dimmer at night.
 - Picking a pal in Settings also makes it your Dynamic Island sprite (and the other way round).
-- Holidays decorate the room on their own: pumpkins and bats in October, a tree, gifts and stockings in December,
-  hearts on Feb 1-14, and frost on the window from December to February.
+- Holidays decorate the room on their own, with string lights in the holiday's colors all day: Halloween (October),
+  Thanksgiving (November), Christmas (December), New Year's (Dec 31-Jan 1, with balloons), Valentine's (Feb 1-14),
+  and frost on the window from December to February.
 - Weather comes from Open-Meteo using your rough location (allow location when asked). Without it, the room follows the clock.
 - Code and art live in the `Pal` folder: Swift files, `PalSprites.xcassets` (pals, rooms, quilt, app icon) and the Pixelify Sans font.
 
@@ -25,8 +26,10 @@ Add **PokePal Room** from the widget gallery, then long-press it → **Edit Widg
   player, watches the fish from the bed, or hangs out on the rug), animating once a second
 - **Hop around**: the pal hops between 10 spots on the rug, once a second
 
-The room's wall clock updates every minute. Home Screen widgets can't really animate, so the once-a-second motion uses the same font trick as the Dynamic Island
-(`tools/build_room_fonts.py` builds those fonts during the GitHub build). It's 1 frame a second, and a future
+The room's wall clock updates every minute; everything else that moves in real life (the pal, clouds, rain and
+snow, lightning, the candle, steam, music notes, the record, the plant, the fish, string lights and balloons)
+changes once a second. Home Screen widgets can't really animate, so the once-a-second motion uses the same font trick as the Dynamic Island
+(`tools/build_room_fonts.py` and `tools/build_fx_fonts.py` build those fonts during the GitHub build). It's 1 frame a second, and a future
 iOS update could break it; if it does, the widget falls back to a still picture. At night the pal is asleep
 under the covers in every mode.
 

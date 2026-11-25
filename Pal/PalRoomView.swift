@@ -252,6 +252,7 @@ struct PalRoomView: View {
         let heartY: CGFloat = palY - side / 2 - CGFloat(heartAge) * 14 * scale - 4 * scale
         let showHeart: Bool = !asleep && heartAge < 1.2
         let w: CGFloat = size.width, h: CGFloat = size.height
+        let holidayLights: [RoomDecorations.RGB]? = RoomDecorations.lightHoliday(for: now).flatMap { RoomDecorations.palettes[$0] }
 
         return ZStack(alignment: .topLeading) {
             Image(time.roomImage(weather))
@@ -259,10 +260,10 @@ struct PalRoomView: View {
                 .interpolation(.none)
                 .frame(width: w, height: h)
 
-            PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep)
+            PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep, lightColors: holidayLights)
                 .frame(width: w, height: h)
 
-            RoomDecorationLayer(date: now, time: time, weather: weather)
+            RoomDecorationLayer(date: now, time: time, weather: weather, t: t)
                 .frame(width: w, height: h)
 
             if asleep {
