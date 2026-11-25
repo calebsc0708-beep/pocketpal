@@ -229,68 +229,72 @@ struct PalRoomView: View {
     var body: some View {
         TimelineView(.animation) { context in
             GeometryReader { geo in
-                let scale = geo.size.width / PalWanderer.roomSize.width
-                let clip = pal.showingBack ? species.back : species.front
-                let frame = clip.frame(at: context.date.timeIntervalSince(start))
-                let side = CGFloat(clip.size) * pal.depthScale * scale
-                let t = context.date.timeIntervalSince(start)
-                let walkHop: CGFloat = (pal.isWalking ? CGFloat(abs(sin(t * 9))) * 1.5 * scale : 0)
-                    + pal.pokeHop(context.date) * scale
-                let heartAge: Double = pal.pokedAt.map { context.date.timeIntervalSince($0) } ?? 9
-
-                ZStack(alignment: .topLeading) {
-                    Image(time.roomImage(weather))
-                        .resizable()
-                        .interpolation(.none)
-                        .frame(width: geo.size.width, height: geo.size.height)
-
-                    PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep)
-                        .frame(width: geo.size.width, height: geo.size.height)
-
-                    RoomDecorationLayer(date: context.date, time: time, weather: weather)
-                        .frame(width: geo.size.width, height: geo.size.height)
-
-                    if asleep {
-                        PalSleepLayer(time: time, weather: weather, t: t, scale: scale)
-                            .frame(width: geo.size.width, height: geo.size.height)
-                    }
-
-                    if !asleep {
-                    Image(frame.image)
-                        .resizable()
-                        .colorMultiply(RoomLook.of(time, weather).palColor)
-                        .interpolation(.none)
-                        .frame(width: side, height: side)
-                        .scaleEffect(x: pal.flipped ? -1 : 1, y: 1)
-                        // Little hop while walking.
-                        .offset(y: -walkHop)
-                        // Anchor at the feet (bottom-center of the frame).
-                        .position(x: pal.position.x * scale, y: pal.position.y * scale - side / 2)
-                    }
-
-                    if !asleep && heartAge < 1.2 {
-                        PixelHeart(scale: scale)
-                            .opacity(1 - heartAge / 1.2)
-                            .position(x: pal.position.x * scale,
-                                      y: (pal.position.y - CGFloat(heartAge) * 14) * scale - side - 4 * scale)
-                    }
-
-                }
-                .contentShape(Rectangle())
-                .onTapGesture(coordinateSpace: .local) { location in
-                    // tap on (or near) the pal: it hops and a heart pops up
-                    let half = side / 2 + 6 * scale
-                    let center = CGPoint(x: pal.position.x * scale, y: pal.position.y * scale - side / 2)
-                    if !asleep && abs(location.x - center.x) < half && abs(location.y - center.y) < half {
-                        pal.poke(context.date)
-                    }
-                }
-                .onChange(of: context.date) { _, now in
-                    pal.species = species
-                    if !asleep { pal.tick(now) }
-                }
+                content(now: context.date, size: geo.size)
             }
             .aspectRatio(PalWanderer.roomSize, contentMode: .fit)
+        }
+    }
+
+    /// One frame of the room. Values are worked out up front with explicit types to keep the compiler fast.
+    private func content(now: Date, size: CGSize) -> some View {
+        let scale: CGFloat = size.width / PalWanderer.roomSize.width
+        let t: Double = now.timeIntervalSince(start)
+        let clip: PalClip = pal.showingBack ? species.back : species.front
+        let frameName: String = clip.frame(at: t).image
+        let side: CGFloat = CGFloat(clip.size) * pal.depthScale * scale
+        var lift: CGFloat = pal.pokeHop(now) * scale
+        if pal.isWalking { lift += CGFloat(abs(sin(t * 9))) * 1.5 * scale }
+        let palX: CGFloat = pal.position.x * scale
+        let palY: CGFloat = pal.position.y * scale - side / 2          // centre of the sprite (feet on its bottom edge)
+        let flipX: CGFloat = pal.flipped ? -1 : 1
+        let tint: Color = RoomLook.of(time, weather).palColor
+        let heartAge: Double = pal.pokedAt.map { now.timeIntervalSince($0) } ?? 9
+        let heartY: CGFloat = palY - side / 2 - CGFloat(heartAge) * 14 * scale - 4 * scale
+        let showHeart: Bool = !asleep && heartAge < 1.2
+        let w: CGFloat = size.width, h: CGFloat = size.height
+
+        return ZStack(alignment: .topLeading) {
+            Image(time.roomImage(weather))
+                .resizable()
+                .interpolation(.none)
+                .frame(width: w, height: h)
+
+            PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep)
+                .frame(width: w, height: h)
+
+            RoomDecorationLayer(date: now, time: time, weather: weather)
+                .frame(width: w, height: h)
+
+            if asleep {
+                PalSleepLayer(time: time, weather: weather, t: t, scale: scale)
+                    .frame(width: w, height: h)
+            } else {
+                Image(frameName)
+                    .resizable()
+                    .interpolation(.none)
+                    .colorMultiply(tint)
+                    .frame(width: side, height: side)
+                    .scaleEffect(x: flipX, y: 1)
+                    .offset(y: -lift)                                  // walking bob / tap hop
+                    .position(x: palX, y: palY)
+            }
+
+            if showHeart {
+                PixelHeart(scale: scale)
+                    .opacity(1 - heartAge / 1.2)
+                    .position(x: palX, y: heartY)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(coordinateSpace: .local) { location in
+            // tap on (or near) the pal: it hops and a heart pops up
+            let half: CGFloat = side / 2 + 6 * scale
+            let near: Bool = abs(location.x - palX) < half && abs(location.y - palY) < half
+            if !asleep && near { pal.poke(now) }
+        }
+        .onChange(of: now) { _, newNow in
+            pal.species = species
+            if !asleep { pal.tick(newNow) }
         }
     }
 }
