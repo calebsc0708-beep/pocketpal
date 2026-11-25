@@ -146,7 +146,6 @@ struct RoomWidgetView: View {
             return CGPoint(x: 172, y: 64)
         }
     }
-    }
 
     @ViewBuilder
     private func room(scale s: CGFloat) -> some View {
