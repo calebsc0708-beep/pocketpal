@@ -14,3 +14,7 @@ Sprites/minccino_*.png
 tools/room/out5/
 tools/room/out5_wide/
 tools/room/final/
+desktop/assets/
+desktop/build/
+desktop/dist/
+*.spec

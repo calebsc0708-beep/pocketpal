@@ -1,0 +1,35 @@
+name: Desktop (Windows)
+
+on:
+  push:
+    branches: [main]
+    paths: ["desktop/**", "Pals/**", "Sprites/**", ".github/workflows/desktop.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: pip install -q pillow pyinstaller
+      - name: Prepare pal frames
+        run: python desktop/prepare_assets.py
+      - name: Smoke test (opens the pal, tries every pal and size, quits)
+        env:
+          POKEPAL_SMOKE: "1"
+        run: python desktop/pokepal_desktop.py
+      - name: Build PokePal.exe
+        run: pyinstaller --noconfirm --onefile --windowed --name PokePal --icon desktop/icon.ico --add-data "desktop/assets;assets" --distpath desktop/dist --workpath desktop/build desktop/pokepal_desktop.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PokePal-windows
+          path: desktop/dist/PokePal.exe

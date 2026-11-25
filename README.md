@@ -80,3 +80,11 @@ used in the rectangle widget), plus the sleeping-lump overlays.
 Pick a pal in the app and the room and Lock Screen widgets switch to it (shared through an App Group,
 `group.com.yourname.pocketpal`; the build ad-hoc signs with that entitlement so SideStore sets it up).
 To pin a widget to a different pal, long-press it → Edit Widget → Pal.
+
+## Desktop pal (Windows)
+
+`desktop/` has a little desktop app: your pal sits in the bottom-right corner of the screen, on top of
+the taskbar, playing its idle animation. Drag it anywhere, click it to make it hop, right-click to
+switch pal, change its size, start it with Windows, or quit. GitHub Actions builds `PokePal.exe`
+(Actions → "Desktop (Windows)" → artifact **PokePal-windows**). Just download and double-click.
+
