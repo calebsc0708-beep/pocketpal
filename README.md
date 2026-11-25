@@ -88,3 +88,11 @@ the taskbar, playing its idle animation. Drag it anywhere, click it to make it h
 switch pal, change its size, start it with Windows, or quit. GitHub Actions builds `PokePal.exe`
 (Actions → "Desktop (Windows)" → artifact **PokePal-windows**). Just download and double-click.
 
+## Stream Deck plugin
+
+`streamdeck/` is a Stream Deck plugin (needs Stream Deck 7.1+). Add the **PokePal → Pal** action to a
+key: it shows your pal's idle animation on a slice of its room (follows your time of day), and
+pressing it makes the pal hop. Pick the pal and background in the key's settings. Download
+**PokePal-streamdeck** from Actions → "Stream Deck plugin", unzip it, and double-click
+`com.calebsc.pokepal.streamDeckPlugin` to install.
+

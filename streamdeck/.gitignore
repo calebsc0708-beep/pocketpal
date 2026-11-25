@@ -1,0 +1,6 @@
+node_modules/
+dist/
+com.calebsc.pokepal.sdPlugin/bin/
+com.calebsc.pokepal.sdPlugin/imgs/pals/
+com.calebsc.pokepal.sdPlugin/imgs/bg/
+com.calebsc.pokepal.sdPlugin/logs/
