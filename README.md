@@ -2,10 +2,10 @@
 
 A cozy pixel room where your pal lives. It wanders around, faces the way it walks, turns its back when it
 heads to the back wall, and curls up under the covers at night. The room follows your real time of day and
-weather (clouds, rain, snow, storms, sunrise and sunset). The original Dynamic Island sprite feature is in the
-**Island** tab.
+weather (clouds, rain, snow, storms, sunrise and sunset). The Dynamic Island sprite controls are on the same
+page, under the room.
 
-## The Room tab
+## The room
 - Pick your pal (Eevee, Pikachu or Minccino) and its name in **Settings** (gear button).
 - Your pal wanders the floor and every so often goes to do an activity, hopping up onto the window seat or the bed.
 - Weather comes from Open-Meteo using your rough location (allow location when asked). Without it, the room follows the clock.
@@ -22,7 +22,7 @@ The room's wall clock updates every minute. Home Screen widgets can't really ani
 iOS update could break it; if it does, the widget falls back to a still picture. At night the pal is asleep
 under the covers in every mode.
 
-## Dynamic Island sprites (Island tab)
+## Dynamic Island sprites
 Puts a little sprite of your choice in your iPhone's Dynamic Island (iPhone 14 Pro or newer).
 
 ## 1. Add your sprites

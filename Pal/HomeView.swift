@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The main PokePal screen: your pal wandering its room, synced to your time of day and weather.
+/// The PokePal page: your pal's room (synced to your time of day and weather) and the Dynamic Island controls.
 struct HomeView: View {
     @StateObject private var settings = PalSettings.shared
     @StateObject private var sky = WeatherSync.shared
@@ -9,16 +9,19 @@ struct HomeView: View {
     private let ticker = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        VStack(spacing: 16) {
-            header
-            PalRoomView(time: sky.time, weather: sky.weather, asleep: sky.time == .night, species: settings.species)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .padding(4)
-                .background(RoundedRectangle(cornerRadius: 14).fill(PalTheme.ink))
-                .background(RoundedRectangle(cornerRadius: 14).fill(PalTheme.shadow).offset(y: 4))
-            Spacer(minLength: 0)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                header
+                PalRoomView(time: sky.time, weather: sky.weather, asleep: sky.time == .night, species: settings.species)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(4)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(PalTheme.ink))
+                    .background(RoundedRectangle(cornerRadius: 14).fill(PalTheme.shadow).offset(y: 4))
+                IslandSection()
+            }
+            .padding(16)
         }
-        .padding(16)
+        .scrollDismissesKeyboard(.interactively)
         .background(PalTheme.paper.ignoresSafeArea())
         .onAppear { sky.start() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { sky.start() } }
@@ -51,16 +54,11 @@ struct HomeView: View {
     }
 }
 
-/// App root: the PokePal room plus the original Dynamic Island screen.
+/// App root: one page with the room and the Dynamic Island controls.
 struct RootView: View {
     var body: some View {
-        TabView {
-            HomeView()
-                .tabItem { Label("Room", systemImage: "house.fill") }
-            ContentView()
-                .tabItem { Label("Island", systemImage: "capsule.fill") }
-        }
-        .tint(PalTheme.pink)
+        HomeView()
+            .tint(PalTheme.pink)
     }
 }
 

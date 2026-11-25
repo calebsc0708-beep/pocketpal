@@ -34,7 +34,8 @@ final class FitStore: ObservableObject {
     }
 }
 
-struct ContentView: View {
+/// The Dynamic Island controls, shown as a section on the main PokePal page.
+struct IslandSection: View {
     @StateObject private var custom = CustomSpriteStore()
     @StateObject private var fits = FitStore()
 
@@ -54,42 +55,67 @@ struct ContentView: View {
     private let bundled = Sprites.all
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    spriteGrid
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Dynamic Island")
+                .font(PalTheme.font(24, bold: true))
+                .padding(.top, 6)
+
+            PalCard {
+                VStack(spacing: 16) {
                     islandPreview
+                    spriteGrid
+                }
+                .padding(14)
+            }
+
+            PalCard {
+                VStack(spacing: 16) {
                     controls
+                    Rectangle().fill(PalTheme.ink.opacity(0.15)).frame(height: 2)
                     fitControls
-
-                    Button("Show in Dynamic Island") { Task { await start() } }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(selected.isEmpty)
-
-                    Button("Put away", role: .destructive) { Task { await stopAll(); status = "Pal put away." } }
-
-                    Text(status)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
-                .padding()
+                .padding(14)
             }
-            .navigationTitle("Pocket Pal")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button { showImport = true } label: { Label("Import from Photos", systemImage: "photo") }
-                        Button { showEditor = true } label: { Label("Draw a sprite", systemImage: "pencil.and.scribble") }
-                    } label: { Image(systemName: "plus") }
+
+            HStack(spacing: 12) {
+                Button { Task { await start() } } label: {
+                    PalCard(fill: PalTheme.pink) {
+                        Text("Show in Island")
+                            .font(PalTheme.font(19, bold: true))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
                 }
+                .buttonStyle(.plain)
+                .disabled(selected.isEmpty)
+                .opacity(selected.isEmpty ? 0.5 : 1)
+
+                Button { Task { await stopAll(); status = "Pal put away." } } label: {
+                    PalCard {
+                        Text("Put away")
+                            .font(PalTheme.font(19, bold: true))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                }
+                .buttonStyle(.plain)
             }
-            .sheet(isPresented: $showImport) {
-                ImportSpriteView(store: custom) { selectCustom($0) }
+
+            if !status.isEmpty {
+                Text(status)
+                    .font(PalTheme.font(15))
+                    .opacity(0.75)
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
             }
-            .sheet(isPresented: $showEditor) {
-                PixelEditorView(store: custom) { selectCustom($0) }
-            }
+        }
+        .foregroundStyle(PalTheme.ink)
+        .tint(PalTheme.pink)
+        .sheet(isPresented: $showImport) {
+            ImportSpriteView(store: custom) { selectCustom($0) }
+        }
+        .sheet(isPresented: $showEditor) {
+            PixelEditorView(store: custom) { selectCustom($0) }
         }
         .onAppear(perform: restoreSelection)
     }
@@ -138,22 +164,26 @@ struct ContentView: View {
             .padding(.horizontal, 14)
             .frame(width: 200, height: 37)
             .background(Capsule().fill(.black))
-            Text("Island preview").font(.caption2).foregroundStyle(.secondary)
+            .overlay(Capsule().strokeBorder(PalTheme.ink, lineWidth: 3))
+            Text("Island preview").font(PalTheme.font(13)).opacity(0.6)
         }
     }
 
     private var controls: some View {
         VStack(spacing: 14) {
             TextField("Nickname (optional)", text: $nickname)
-                .textFieldStyle(.roundedBorder)
+                .font(PalTheme.font(17))
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(PalTheme.ink, lineWidth: 2.5))
 
             if selectedIsCustom {
                 Text("Sprites added in the app stay still. To animate or move one, long-press it → Share / save PNG, then add it to the Sprites folder on GitHub.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(PalTheme.font(14))
+                    .opacity(0.7)
             } else {
                 if selectedEntry?.isAnimated == true {
-                    Toggle("Animate", isOn: $animate)
+                    Toggle(isOn: $animate) { Text("Animate").font(PalTheme.font(17, bold: true)) }
                 }
                 pickerRow("Movement", selection: $motion, options: Sprites.motions)
             }
@@ -167,10 +197,10 @@ struct ContentView: View {
         let fit = fits.fit(for: id)
         return VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Fit in island").font(.headline)
+                Text("Fit in island").font(PalTheme.font(19, bold: true))
                 Spacer()
                 Button("Reset") { fits.set(.init(), for: id) }
-                    .font(.footnote)
+                    .font(PalTheme.font(15, bold: true))
                     .disabled(fit == .init())
             }
             sliderRow("Size", value: binding(id, \.zoom), range: 0.5...1.6)
@@ -187,36 +217,35 @@ struct ContentView: View {
         VStack(spacing: 6) {
             content()
             HStack(spacing: 3) {
-                Text(name).font(.caption).lineLimit(1)
+                Text(name).font(PalTheme.font(14, bold: true)).lineLimit(1)
                 if badge { Image(systemName: "sparkles").font(.caption2) }
             }
         }
         .padding(8)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.1))
-        )
+        .background(RoundedRectangle(cornerRadius: 12).fill(isSelected ? PalTheme.pinkLight : Color.white))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(PalTheme.ink, lineWidth: isSelected ? 3 : 2))
         .contentShape(Rectangle())
     }
 
     private func addTile(title: String, symbol: String) -> some View {
         VStack(spacing: 6) {
             Image(systemName: symbol).font(.title2).frame(width: 64, height: 64)
-            Text(title).font(.caption)
+            Text(title).font(PalTheme.font(14, bold: true))
         }
         .padding(8)
         .frame(maxWidth: .infinity)
+        .foregroundStyle(PalTheme.ink)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.secondary.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4]))
+                .strokeBorder(PalTheme.ink.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [5]))
         )
     }
 
     private func pickerRow(_ title: String, selection: Binding<String>,
                            options: [(label: String, value: String)]) -> some View {
         HStack {
-            Text(title)
+            Text(title).font(PalTheme.font(17, bold: true))
             Spacer()
             Picker(title, selection: selection) {
                 ForEach(options, id: \.value) { Text($0.label).tag($0.value) }
@@ -226,7 +255,7 @@ struct ContentView: View {
 
     private func sliderRow(_ title: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         HStack {
-            Text(title).font(.subheadline).frame(width: 96, alignment: .leading)
+            Text(title).font(PalTheme.font(15)).frame(width: 96, alignment: .leading)
             Slider(value: value, in: range)
         }
     }
@@ -298,7 +327,7 @@ struct ContentView: View {
 
     private func start() async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            status = "Live Activities are turned off. Turn them on in Settings → Pocket Pal."
+            status = "Live Activities are turned off. Turn them on in Settings → PokePal."
             return
         }
         if selectedIsCustom && customPNG == nil {
