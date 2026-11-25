@@ -77,16 +77,6 @@ final class PalWanderer: ObservableObject {
 
     private var flippedMovingRight = false
 
-    /// Stop and look toward the right edge (where the trainer appears) for `seconds`.
-    func holdStill(facingRight: Bool, seconds: TimeInterval, now: Date = Date()) {
-        target = nil
-        isWalking = false
-        showingBack = false
-        flippedMovingRight = facingRight
-        flipped = needsFlip(movingRight: facingRight, clip: species.front)
-        idleUntil = now.addingTimeInterval(seconds)
-    }
-
     /// Decide which clip and which way to mirror, from the direction of travel.
     private func face(dx: CGFloat, dy: CGFloat) {
         // Walking away from the viewer (toward the back wall) -> show the back.
@@ -111,11 +101,9 @@ final class PalWanderer: ObservableObject {
 struct PalRoomView: View {
     var time: RoomTime = .day
     var weather: RoomWeather = .clear
-    /// When true the pal is tucked into bed under the covers with Zs floating up.
+    /// When true the pal is asleep under the covers with Zs floating up (at night).
     var asleep: Bool = false
     var species: PalSpecies = .eevee
-    /// Set when the player feeds the pal: the trainer pops in and throws the berry.
-    var feeding: FeedingEvent? = nil
     @StateObject private var pal = PalWanderer()
     private let start = Date()
 
@@ -127,8 +115,6 @@ struct PalRoomView: View {
                 let frame = clip.frame(at: context.date.timeIntervalSince(start))
                 let side = CGFloat(clip.size) * pal.depthScale * scale
                 let t = context.date.timeIntervalSince(start)
-                let activeFeeding = feeding.flatMap { $0.isFinished(context.date) ? nil : $0 }
-                let hop: CGFloat = activeFeeding?.palHop(context.date) ?? 0
                 let walkHop: CGFloat = pal.isWalking ? CGFloat(abs(sin(t * 9))) * 1.5 * scale : 0
 
                 ZStack(alignment: .topLeading) {
@@ -154,22 +140,13 @@ struct PalRoomView: View {
                         // Little hop while walking.
                         .offset(y: -walkHop)
                         // Anchor at the feet (bottom-center of the frame).
-                        .position(x: pal.position.x * scale, y: (pal.position.y - hop) * scale - side / 2)
+                        .position(x: pal.position.x * scale, y: pal.position.y * scale - side / 2)
                     }
 
-                    if let event = activeFeeding, !asleep {
-                        PalFeedingLayer(event: event, now: context.date, time: time, weather: weather, scale: scale,
-                                        palPosition: pal.position, palSide: side / scale)
-                            .frame(width: geo.size.width, height: geo.size.height)
-                    }
                 }
                 .onChange(of: context.date) { _, now in
                     pal.species = species
                     if !asleep { pal.tick(now) }
-                }
-                .onChange(of: feeding) { _, event in
-                    // stop wandering and look at the trainer for the whole throw
-                    if event != nil { pal.holdStill(facingRight: true, seconds: FeedingEvent.duration + 0.5) }
                 }
             }
             .aspectRatio(PalWanderer.roomSize, contentMode: .fit)

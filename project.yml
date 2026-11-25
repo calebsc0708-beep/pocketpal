@@ -47,6 +47,13 @@ targets:
     sources:
       - Widget
       - Shared
+      # the room widget reuses these from the app
+      - Pal/PalSpriteData.swift
+      - Pal/PalRoomAmbience.swift
+      - Pal/PalRoomView.swift
+      - Pal/RoomLook.swift
+      - Pal/WeatherSync.swift
+      - Pal/PalSprites.xcassets
       - path: Generated/Sprites
         type: folder
       - path: Generated/Fonts

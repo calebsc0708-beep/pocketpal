@@ -47,7 +47,7 @@ struct PalSpriteView: View {
 
 /// "Choose your pal" screen: animated cards, tap one to pick it.
 struct PalPickerView: View {
-    @ObservedObject var care: PalCare = .shared
+    @ObservedObject var settings: PalSettings = .shared
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
 
@@ -59,9 +59,9 @@ struct PalPickerView: View {
                     .foregroundStyle(PalTheme.ink)
 
                 ForEach(PalSpecies.allCases) { species in
-                    let selected = care.state.species == species
+                    let selected = settings.species == species
                     Button {
-                        withAnimation(.snappy) { care.choose(species) }
+                        withAnimation(.snappy) { settings.choose(species) }
                     } label: {
                         PalCard(fill: selected ? PalTheme.pinkLight : PalTheme.cream) {
                             HStack(spacing: 16) {
@@ -93,15 +93,15 @@ struct PalPickerView: View {
                     .font(PalTheme.font(20, bold: true))
                     .foregroundStyle(PalTheme.ink)
                 PalCard {
-                    TextField(care.state.species.displayName, text: $name)
+                    TextField(settings.species.displayName, text: $name)
                         .font(PalTheme.font(20))
                         .foregroundStyle(PalTheme.ink)
                         .padding(14)
-                        .onSubmit { care.rename(name) }
+                        .onSubmit { settings.rename(name) }
                 }
 
                 Button {
-                    care.rename(name)
+                    settings.rename(name)
                     dismiss()
                 } label: {
                     PalCard(fill: PalTheme.pink) {
@@ -117,7 +117,7 @@ struct PalPickerView: View {
             .padding(20)
         }
         .background(PalTheme.paper.ignoresSafeArea())
-        .onAppear { name = care.state.name }
+        .onAppear { name = settings.name }
     }
 }
 

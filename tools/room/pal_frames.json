@@ -1,0 +1,1814 @@
+{
+ "eevee": {
+  "front": {
+   "naturalFacing": "left",
+   "frames": [
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 200
+    },
+    {
+     "image": "pal_eevee_front_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 200
+    },
+    {
+     "image": "pal_eevee_front_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 200
+    },
+    {
+     "image": "pal_eevee_front_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 200
+    },
+    {
+     "image": "pal_eevee_front_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_24",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_front_25",
+     "ms": 100
+    }
+   ]
+  },
+  "back": {
+   "naturalFacing": "right",
+   "frames": [
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_24",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_25",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_26",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_27",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_28",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_29",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_30",
+     "ms": 100
+    },
+    {
+     "image": "pal_eevee_back_00",
+     "ms": 100
+    }
+   ]
+  }
+ },
+ "pikachu": {
+  "front": {
+   "naturalFacing": "left",
+   "frames": [
+    {
+     "image": "pal_pikachu_front_00",
+     "ms": 300
+    },
+    {
+     "image": "pal_pikachu_front_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_24",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_25",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_26",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_27",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_28",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_29",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_30",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_31",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_28",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_27",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_32",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_33",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_34",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_35",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_36",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_37",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_38",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_39",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_40",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_32",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_26",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_41",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_42",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_43",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_42",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_41",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_26",
+     "ms": 200
+    },
+    {
+     "image": "pal_pikachu_front_44",
+     "ms": 300
+    },
+    {
+     "image": "pal_pikachu_front_26",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_front_45",
+     "ms": 100
+    }
+   ]
+  },
+  "back": {
+   "naturalFacing": "right",
+   "frames": [
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_24",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_25",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_26",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_27",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_28",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_29",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_30",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_31",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_32",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_33",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_34",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_35",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_36",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_37",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_38",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_39",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_40",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_41",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_42",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_43",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 200
+    },
+    {
+     "image": "pal_pikachu_back_44",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_45",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_46",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_47",
+     "ms": 200
+    },
+    {
+     "image": "pal_pikachu_back_48",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_49",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_50",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_51",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_50",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_50",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_51",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_50",
+     "ms": 100
+    },
+    {
+     "image": "pal_pikachu_back_00",
+     "ms": 100
+    }
+   ]
+  }
+ },
+ "minccino": {
+  "front": {
+   "naturalFacing": "left",
+   "frames": [
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_08",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_09",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_10",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_11",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_12",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_13",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_14",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_15",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_16",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_17",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_18",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_19",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_20",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_21",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_22",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_08",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_09",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_10",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_11",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_12",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_13",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_14",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_15",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_16",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_17",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_18",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_19",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_20",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_21",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_22",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 120
+    },
+    {
+     "image": "pal_minccino_front_01",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_02",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_03",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_04",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_05",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_06",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_07",
+     "ms": 60
+    },
+    {
+     "image": "pal_minccino_front_00",
+     "ms": 60
+    }
+   ]
+  },
+  "back": {
+   "naturalFacing": "right",
+   "frames": [
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_01",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_02",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_03",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_04",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_05",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_06",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_07",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_08",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_09",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_10",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_11",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_12",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_13",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_14",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_15",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_16",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_17",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_18",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_19",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_20",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_21",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_22",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_23",
+     "ms": 100
+    },
+    {
+     "image": "pal_minccino_back_00",
+     "ms": 100
+    }
+   ]
+  }
+ }
+}

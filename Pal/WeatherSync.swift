@@ -57,6 +57,13 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     // MARK: Open-Meteo
 
+    struct Snapshot {
+        let weather: RoomWeather
+        let temperature: Double
+        let sunrise: Date?
+        let sunset: Date?
+    }
+
     private struct Response: Decodable {
         struct Current: Decodable { let temperature_2m: Double; let weather_code: Int }
         struct Daily: Decodable { let sunrise: [String]; let sunset: [String] }
@@ -65,7 +72,8 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
         let daily: Daily
     }
 
-    private func fetch(lat: Double, lon: Double) async {
+    /// Current weather + today's sunrise/sunset for a spot. Used by the app and the widget.
+    nonisolated static func fetchSnapshot(lat: Double, lon: Double) async -> Snapshot? {
         var parts = URLComponents(string: "https://api.open-meteo.com/v1/forecast")!
         parts.queryItems = [
             .init(name: "latitude", value: String(format: "%.2f", lat)),
@@ -78,14 +86,21 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
         ]
         guard let url = parts.url,
               let (data, _) = try? await URLSession.shared.data(from: url),
-              let r = try? JSONDecoder().decode(Response.self, from: data) else { return }
-
+              let r = try? JSONDecoder().decode(Response.self, from: data) else { return nil }
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd'T'HH:mm"
         f.timeZone = TimeZone(secondsFromGMT: r.utc_offset_seconds)
-        sunrise = r.daily.sunrise.first.flatMap { f.date(from: $0) }
-        sunset = r.daily.sunset.first.flatMap { f.date(from: $0) }
-        weather = Self.weather(code: r.current.weather_code)
+        return Snapshot(weather: weather(code: r.current.weather_code),
+                        temperature: r.current.temperature_2m,
+                        sunrise: r.daily.sunrise.first.flatMap { f.date(from: $0) },
+                        sunset: r.daily.sunset.first.flatMap { f.date(from: $0) })
+    }
+
+    private func fetch(lat: Double, lon: Double) async {
+        guard let snap = await Self.fetchSnapshot(lat: lat, lon: lon) else { return }
+        sunrise = snap.sunrise
+        sunset = snap.sunset
+        weather = snap.weather
         lastFetch = Date()
         refreshTime()
 
@@ -95,11 +110,11 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
         if let sunset, Date() < sunset { next = "sunset \(clock.string(from: sunset))" }
         else if let sunrise { next = "sunrise \(clock.string(from: sunrise.addingTimeInterval(Date() > sunrise ? 86_400 : 0)))" }
         else { next = "" }
-        summary = "\(weather.label) \(Int(r.current.temperature_2m.rounded()))°  \(next)"
+        summary = "\(weather.label) \(Int(snap.temperature.rounded()))°  \(next)"
     }
 
     /// WMO weather codes -> the five room looks.
-    static func weather(code: Int) -> RoomWeather {
+    nonisolated static func weather(code: Int) -> RoomWeather {
         switch code {
         case 0, 1: .clear
         case 2, 3, 45, 48: .cloudy
@@ -111,7 +126,7 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     /// Sunrise = the hour around sunrise, sunset = the hour around sunset. Falls back to the clock.
-    static func clockTime(_ now: Date, sunrise: Date?, sunset: Date?) -> RoomTime {
+    nonisolated static func clockTime(_ now: Date, sunrise: Date?, sunset: Date?) -> RoomTime {
         if let sunrise, let sunset {
             if now >= sunrise.addingTimeInterval(-30 * 60) && now < sunrise.addingTimeInterval(60 * 60) { return .sunrise }
             if now >= sunset.addingTimeInterval(-60 * 60) && now < sunset.addingTimeInterval(30 * 60) { return .sunset }

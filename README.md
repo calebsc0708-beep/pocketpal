@@ -1,18 +1,27 @@
 # PokePal
 
-A cozy pixel room where your pal lives: it wanders around, sleeps under the covers when it's tired,
-and you feed it berries that your trainer throws in from the side. The room follows your real time of
-day and weather. The original Dynamic Island sprite feature is still here, in the **Island** tab.
+A cozy pixel room where your pal lives. It wanders around, faces the way it walks, turns its back when it
+heads to the back wall, and curls up under the covers at night. The room follows your real time of day and
+weather (clouds, rain, snow, storms, sunrise and sunset). The original Dynamic Island sprite feature is in the
+**Island** tab.
 
-## The Home tab
-- Pick your pal (Eevee, Pikachu or Minccino) and whether you're a boy or girl trainer in **Settings** (gear button).
-- Needs (Hunger, Happy, Energy, Clean) drop over real time, even while the app is closed.
-- **Feed** with Oran, Sitrus or Leppa berries (Black/White-style effects). Long-press a berry to buy more or give it to hold.
-- Your pal goes to sleep by itself when Energy runs low, and you get notifications when it's hungry, sleepy, wants to play or needs a bath.
+## The Room tab
+- Pick your pal (Eevee, Pikachu or Minccino) and its name in **Settings** (gear button).
 - Weather comes from Open-Meteo using your rough location (allow location when asked). Without it, the room follows the clock.
-- All of this lives in the `Pal` folder: Swift code, `PalSprites.xcassets` (pals, rooms, berries, trainers, quilt, app icon) and the Pixelify Sans font.
+- Code and art live in the `Pal` folder: Swift files, `PalSprites.xcassets` (pals, rooms, quilt, app icon) and the Pixelify Sans font.
 
+## Room widget (medium and large)
+Add **PokePal Room** from the widget gallery, then long-press it → **Edit Widget** to choose the pal and motion:
+- **Still**: the pal stands somewhere new each time the widget refreshes (about every 15 minutes)
+- **Idle**: plays the pal's animation in place, once a second
+- **Hop around**: the pal hops between 10 spots on the rug, once a second
 
+Home Screen widgets can't really animate, so Idle and Hop use the same font trick as the Dynamic Island
+(`tools/build_room_fonts.py` builds those fonts during the GitHub build). It's 1 frame a second, and a future
+iOS update could break it; if it does, the widget falls back to a still picture. At night the pal is asleep
+under the covers in every mode.
+
+## Dynamic Island sprites (Island tab)
 Puts a little sprite of your choice in your iPhone's Dynamic Island (iPhone 14 Pro or newer).
 
 ## 1. Add your sprites
