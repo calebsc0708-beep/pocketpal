@@ -12,8 +12,9 @@ final class PalSettings: ObservableObject {
     private let defaults = UserDefaults.standard
 
     init() {
-        species = PalSpecies(rawValue: UserDefaults.standard.string(forKey: "pal.species") ?? "") ?? .eevee
-        name = UserDefaults.standard.string(forKey: "pal.name") ?? species.displayName
+        let saved = PalSpecies(rawValue: UserDefaults.standard.string(forKey: "pal.species") ?? "") ?? .eevee
+        species = saved
+        name = UserDefaults.standard.string(forKey: "pal.name") ?? saved.displayName
     }
 
     func choose(_ species: PalSpecies) {
