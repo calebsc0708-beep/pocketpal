@@ -126,20 +126,15 @@ struct RoomWidgetView: View {
 
     /// Which part of the room to keep centred (room px). Medium shows nearly the whole width.
     private var focusPoint: CGPoint {
-        let night = entry.time == .night
         switch family {
-        case .systemSmall:
-            // small (and StandBy): follow the pal; the bed at night
-            if night { return CGPoint(x: 205, y: 96) }
-            if entry.motion == .hop { return CGPoint(x: 102, y: 118) }
-            let p = PalActivity.forSlot(entry.slot).perch
-            return CGPoint(x: p.x, y: p.y - 14)
-        case .systemLarge:
-            // the rug by day, the bed at night (so the sleeping pal is in view)
-            return CGPoint(x: night ? 176 : 112, y: 100)
+        case .systemSmall, .systemLarge:
+            // squares: one view for both sizes — window, desk, shelf, fish tank, rug and the bed (x 64...224)
+            return CGPoint(x: 144, y: 80)
         default:
-            return CGPoint(x: 128, y: 100)
+            // rectangle: fill the width and keep the top (ceiling, string lights, clock); trims the bottom of the floor
+            return CGPoint(x: 128, y: 64)
         }
+    }
     }
 
     @ViewBuilder
