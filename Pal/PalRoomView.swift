@@ -9,6 +9,9 @@ final class PalWanderer: ObservableObject {
     static let roomSize = CGSize(width: 256, height: 160)
     /// Walkable floor: in front of the desk/window seat, left of the bed.
     static let floor = CGRect(x: 44, y: 110, width: 116, height: 36)
+    /// Where it picks spots to wander to: in front of the desk chair's legs (they reach y 114) and clear of the
+    /// floor plant in the front corner (its leaves reach x 41; the pal is at most ~34 px wide).
+    static let walkable = CGRect(x: 60, y: 116, width: 100, height: 30)
 
     @Published private(set) var position = CGPoint(x: 100, y: 130)
     @Published private(set) var showingBack = false   // true while walking away from the viewer
@@ -109,7 +112,7 @@ final class PalWanderer: ObservableObject {
     }
 
     private func pickTarget() {
-        let f = Self.floor
+        let f = Self.walkable
         var t: CGPoint
         repeat {
             t = CGPoint(x: .random(in: f.minX...f.maxX), y: .random(in: f.minY...f.maxY))
@@ -285,6 +288,7 @@ struct PalRoomView: View {
                     .opacity(1 - heartAge / 1.2)
                     .position(x: palX, y: heartY)
             }
+
         }
         .contentShape(Rectangle())
         .onTapGesture(coordinateSpace: .local) { location in

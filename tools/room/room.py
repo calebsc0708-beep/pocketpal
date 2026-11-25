@@ -110,6 +110,7 @@ vp = (150, 40)
 for x in range(-200, W + 400, 26):
     d.line([(x, H), (vp[0] + (x - vp[0]) * (FL - vp[1]) / (H - vp[1]), FL)], fill=FLOOR_D)
 
+_snap_shell = img.copy()
 # ---------- window + seat ----------
 wx0, wx1, wy0, wy1 = 62, 108, 26, 74
 R(wx0 - 3, wy0, wx1 + 3, wy1 + 3, WOOD_D)
@@ -192,7 +193,7 @@ for x0 in [wx0 - 5, wx0 + 21]: Rd(x0, 85, x0 + 20, FL - 3, SEAT_D, WOOD_D); Rd(x
 E([wx0 - 6, 66, wx0 + 10, 79], QUILT2); E([wx0 - 4, 68, wx0 + 6, 77], (246, 200, 130))
 E([wx1 - 10, 67, wx1 + 6, 79], SAGE); E([wx1 - 8, 69, wx1 + 2, 77], (146, 180, 140))
 block(wx0 + 18, 73, wx0 + 34, 76, 0.15, 0.4, BLANK, top=BLANK_L, side=BLANK_D); Ld([(wx0 + 18, 74.5), (wx0 + 34, 74.5)], 0.4, BLANK_D)   # folded blanket
-block(wx0 + 36, 73, wx0 + 41, 76, 0.2, 0.32, CREAM_D, top=(196, 176, 150)); px(wx0 + 42, 75, CREAM_D)                                  # mug
+block(wx0 + 36, 73, wx0 + 41, 76, 0.0, 0.1, CREAM_D, top=(196, 176, 150)); px(wx0 + 42, 74, CREAM_D); px(wx0 + 42, 75, CREAM_D)   # mug (the steam rises from x 100)                                  # mug
 px(wx0 + 38, 71, (200, 200, 210)); px(wx0 + 39, 70, (200, 200, 210))
 
 # ---------- desk wall: corkboard, shelf ----------
@@ -417,6 +418,7 @@ if WIDE:
     wbox(AX, AZ, A, 0.18, 0.26, 0.3, 0.1, 0.5, 0.95, BLANK, 1.1, 1.0, 0.78)       # throw blanket over the back
     wbox(AX, AZ, A, -0.05, 0.1, 0.32, 0.12, 0.44, 0.7, QUILT2, 1.1, 1.0, 0.8)     # little cushion leaning on the back
 
+_snap_prerug = img.copy()
 # ---------- rug + floor clutter ----------
 E([58, 112, 168, 148], RUG_D); E([60, 112, 166, 146], RUG); E([72, 117, 154, 141], RUG_L); E([80, 120, 146, 138], RUG)
 for a in range(0, 360, 20):
@@ -438,6 +440,7 @@ R(140, 124, 146, 125, CREAM_D)
 E([150, 138, 158, 142], (200, 160, 200)); E([158, 139, 166, 143], (200, 160, 200))
 
 
+_snap_postrug = img.copy()
 # ---------- the pal (scene-dependent) ----------
 BLUSH = (240, 140, 160); HI = (255, 255, 255)
 def zzz(x, y):
@@ -532,6 +535,7 @@ elif S == "hide":                     # storm: hiding under the quilt
     for dx in (202, 210): R(dx - 1, 96, dx + 1, 98, (250, 250, 240)); px(dx, 97, DARK)
     for (x, y) in [(186, 92), (224, 92), (188, 86), (222, 84)]: px(x, y, CREAM)
 
+_snap_prefg = img.copy()
 # ---------- foreground (closer, darker) ----------
 P([(-4, 114), (24, 114), (27, 160), (-4, 160)], POT)
 P([(16, 114), (24, 114), (27, 160), (19, 160)], POT_D)
@@ -541,6 +545,7 @@ for _ in range(70):
     x0, y0 = 10, 112
     x1 = x0 + L * math.cos(a) * 1.2; y1 = y0 + L * math.sin(a)
     d.line([(x0, y0), (x1, y1)], fill=random.choice([GREEN_D, GREEN_DD, GREEN]), width=2)
+_snap_fgplant = img.copy()   # the floor plant is in front of every decoration
 # hanging plant from ceiling (right foreground)
 d.line([(246, 0), (246, 18)], fill=(60, 44, 40))
 E([238, 18, 254, 28], POT_D); E([238, 17, 254, 23], POT); E([240, 18, 252, 22], (70, 50, 40))
@@ -559,6 +564,19 @@ if WIDE:
 sd.ellipse([56, 140, 168, 152], fill=50)
 sd.polygon([(0, 150), (28, 150), (34, 160), (0, 160)], fill=80)
 
+# shadows fall on the floor and rug only, never on the furniture casting them (or anything in front)
+A_ = lambda im: np.asarray(im.convert("RGB")).astype(int)
+objs = (A_(_snap_prerug) != A_(_snap_shell)).any(2) | (A_(img) != A_(_snap_postrug)).any(2)
+_audit_sh = np.asarray(shadow) > 0
+shadow = Image.fromarray(np.where(objs, 0, np.asarray(shadow)).astype(np.uint8))
+if os.environ.get("AUDIT"):
+    sh_ = _audit_sh
+    bad = objs & sh_
+    vis = A_(img).astype(np.uint8).copy()
+    vis[sh_ & ~objs] = (vis[sh_ & ~objs] * 0.5 + np.array([0, 90, 255]) * 0.5).astype(np.uint8)   # blue: shadow on floor (fine)
+    vis[bad] = (255, 0, 60)                                                                         # red: shadow on furniture
+    Image.fromarray(vis).save(f"audit_shadow_{'wide' if WIDE else 'normal'}.png")
+    print("shadow on objects (before clipping):", int(bad.sum()), "px; after:", int((objs & (np.asarray(shadow) > 0)).sum()))
 # ---------- lighting pass ----------
 base = np.asarray(img).astype(np.float32) / 255
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -624,3 +642,6 @@ if TIME == "day" and WEATHER == "clear":
     same = (np.abs(fin - np.round(np.asarray(sky).astype(float) / 8) * 8).max(axis=2) <= 8) & wm_
     Image.fromarray((same * 255).astype(np.uint8)).save(f"{OUT}/glass_mask.png")
     CHAIR_MASK.save(f"{OUT}/chair_mask.png")
+    # everything decorations must tuck behind: the desk chair and the floor plant in the front corner
+    _fg = (np.asarray(_snap_fgplant).astype(int) != np.asarray(_snap_prefg).astype(int)).any(axis=2)
+    Image.fromarray(((np.asarray(CHAIR_MASK) > 0) | _fg).astype(np.uint8) * 255).save(f"{OUT}/front_mask.png")

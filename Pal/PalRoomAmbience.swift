@@ -146,7 +146,9 @@ struct PalRoomAmbience: View {
             // ---- record player: spinning platter + floating notes ----
             if musicOn {
                 let ang = t * 2 * .pi * 0.75
-                dot((129 + 5 * cos(ang)).rounded(), (72 + 1.4 * sin(ang)).rounded(), (120, 110, 130), 1)
+                let rx = (129 + 5 * cos(ang)).rounded(), ry = (72 + 1.4 * sin(ang)).rounded()
+                // the desk chair's top rail is in front of the record player: the spin goes behind it
+                if !Self.chairCoversRecord.contains(Int(rx) * 1000 + Int(ry)) { dot(rx, ry, (120, 110, 130), 1) }
                 let colors: [(Double, Double, Double)] = [(140, 220, 210), (250, 210, 120), (240, 150, 170)]
                 for i in 0..<4 {
                     let p = (t / 3.2 + Double(i) / 4).truncatingRemainder(dividingBy: 1)
@@ -235,11 +237,15 @@ struct PalRoomAmbience: View {
         time == .night || time == .sunset || ((weather == .storm || weather == .rain) && time != .day)
     }
     private var musicOn: Bool { time != .night && !palAsleep }   // no music while the pal sleeps
-    private var lightning: Bool {
+    private var lightning: Bool { Self.lightning(t: t, weather: weather) }
+    static func lightning(t: Double, weather: RoomWeather) -> Bool {
         guard weather == .storm else { return false }
         let ph = t.truncatingRemainder(dividingBy: 7)
         return ph < 0.12 || (ph > 0.25 && ph < 0.33)
     }
+    /// Spots on the record player's spin path hidden by the desk chair (x * 1000 + y), from the room art.
+    static let chairCoversRecord: Set<Int> = [129071, 129073, 130071, 130073, 131071, 131073, 132071, 132073,
+                                              133071, 133073, 134071, 134072, 134073]
 
     /// String-light bulb positions (matches the room art).
     static let bulbs: [CGPoint] = {

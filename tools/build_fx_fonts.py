@@ -62,6 +62,9 @@ def upscale_square(overlay, side, origin, scales):
     return {side * m: sq.resize((side * m, side * m), Image.NEAREST) for m in scales}
 
 
+FRONT = np.asarray(Image.open(Path(__file__).parent / "fx" / "front_mask.png").convert("L")) > 0
+
+
 def room_fx(time, weather):
     base = asset(f"room_{time}_{weather}")
     info = json.loads((ROOMS / f"room_{time}_{weather}.json").read_text())
@@ -72,6 +75,8 @@ def room_fx(time, weather):
         f = ambience.draw2(base, float(d), time, weather, info, clock=None)
         a, b = np.asarray(f).astype(np.int16), np.asarray(base).astype(np.int16)
         changed = np.abs(a[..., :3] - b[..., :3]).max(axis=2) > 0
+        solid = np.abs(a[..., :3] - b[..., :3]).max(axis=2) > 45      # a drawn pixel, not just light
+        changed &= ~(FRONT & solid)                         # the desk chair / floor plant are in front of those
         ov = np.zeros_like(np.asarray(f)); ov[changed] = np.asarray(f)[changed]
         ov[changed, 3] = 255
         frames.append(Image.fromarray(ov))
