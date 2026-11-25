@@ -299,6 +299,8 @@ struct IslandSection: View {
         selected = name
         selectedIsCustom = false
         customPNG = nil
+        // picking one of the room pals here makes it the room pal too
+        if let species = PalSpecies(rawValue: name) { PalSettings.shared.choose(species, syncIsland: false) }
         if let s = Sprites.settings[name] {
             if let m = s.motion, Sprites.motions.contains(where: { $0.value == m }) { motion = m }
             if let icon = s.icon { trailing = icon }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Frame fonts for the PokePal room widget. Run AFTER tools/build_sprites.py (it wipes Generated/).
+Frame fonts for the PokePal room widget. Run AFTER tools/build_pals.py and tools/build_sprites.py (it wipes Generated/).
 
 Home Screen widgets can't animate, so this uses the same trick as the Dynamic Island:
 a running timer drawn in a font whose digits 0-9 are pictures. The seconds digit changes
@@ -29,15 +29,15 @@ from fontTools.ttLib.tables.sbixGlyph import Glyph as SbixGlyph
 from fontTools.ttLib.tables.sbixStrike import Strike
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS = ROOT / "Pal" / "PalSprites.xcassets"
-FRAMES = json.loads((ROOT / "tools" / "room" / "pal_frames.json").read_text())
+ASSETS = ROOT / "PalGen" / "PalFrames.xcassets"          # made by tools/build_pals.py
+FRAMES = json.loads((ROOT / "PalGen" / "pal_frames.json").read_text())
 OUT = ROOT / "Generated" / "Fonts"
 PLIST = ROOT / "Support" / "Widget-Info.plist"
 
 # ---- must match Widget/RoomWidget.swift ----
 HOP_ORIGIN = (20, 0)       # top-left of the hop glyph square, in room px
 HOP_SIDE = 160             # the square covers 160x160 room px
-PAL_ROOM_SIZE = 34         # pal drawn 34 room px tall (its 68 px canvas at half size)
+PAL_ROOM_SIZE = 34         # a 68 px canvas is drawn 34 room px tall (half size); bigger canvases scale up
 def spot(k):               # 10 spots in a loop around the rug (feet position, room px)
     a = 2 * math.pi * k / 10
     return (102 + 40 * math.cos(a), 128 + 12 * math.sin(a))
@@ -135,7 +135,7 @@ def hop_pictures(species, px_per_room):
         moving_right = dx > 0
         if (facing == "left" and moving_right) or (facing == "right" and not moving_right):
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
-        side = round(PAL_ROOM_SIZE * px_per_room)
+        side = round(PAL_ROOM_SIZE * img.width / 68 * px_per_room)
         img = img.resize((side, side), Image.NEAREST)
         canvas = Image.new("RGBA", (HOP_SIDE * px_per_room, HOP_SIDE * px_per_room), (0, 0, 0, 0))
         left = round((x - HOP_ORIGIN[0]) * px_per_room - side / 2)

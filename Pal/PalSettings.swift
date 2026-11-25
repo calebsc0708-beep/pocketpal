@@ -17,11 +17,17 @@ final class PalSettings: ObservableObject {
         name = UserDefaults.standard.string(forKey: "pal.name") ?? saved.displayName
     }
 
-    func choose(_ species: PalSpecies) {
+    /// Pick the room pal. Also makes it the Dynamic Island sprite, so they always match.
+    func choose(_ species: PalSpecies, syncIsland: Bool = true) {
         // keep a custom name; otherwise follow the species
         if PalSpecies.allCases.map(\.displayName).contains(name) { name = species.displayName }
         self.species = species
         save()
+        if syncIsland {
+            // same keys the Dynamic Island section reads with @AppStorage
+            defaults.set(species.rawValue, forKey: "selectedSprite")
+            defaults.set(false, forKey: "selectedIsCustom")
+        }
     }
 
     func rename(_ newName: String) {

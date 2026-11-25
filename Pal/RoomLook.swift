@@ -10,6 +10,7 @@ struct RoomLook {
     let plantTint: RGB     // multiply colors in the top-right corner by this
     let shelfTint: RGB     // ...and on the wall shelf above the bed
     let trainerTint: RGB   // ...and on the trainer in the right foreground
+    let palTint: RGB       // ...and on the pal, so it's lit like the room (1 = clear daylight)
 
     static func of(_ time: RoomTime, _ weather: RoomWeather) -> RoomLook {
         table["\(time.rawValue)_\(weather.rawValue)"]!
@@ -163,25 +164,25 @@ struct RoomLook {
     ]
 
     static let table: [String: RoomLook] = [
-        "sunrise_clear": .init(cloud: (250, 200, 196), cloudShadow: (220, 176, 172), clouds: 2, plantTint: (0.571, 0.519, 0.526), shelfTint: (0.743, 0.609, 0.667), trainerTint: (0.76, 0.689, 0.718)),
-        "sunrise_cloudy": .init(cloud: (250, 200, 196), cloudShadow: (220, 176, 172), clouds: 7, plantTint: (0.49, 0.444, 0.421), shelfTint: (0.914, 0.696, 0.667), trainerTint: (0.713, 0.656, 0.675)),
-        "sunrise_rain": .init(cloud: (190, 164, 168), cloudShadow: (167, 144, 147), clouds: 9, plantTint: (0.653, 0.519, 0.526), shelfTint: (0.8, 0.696, 0.667), trainerTint: (0.656, 0.602, 0.619)),
-        "sunrise_storm": .init(cloud: (92, 81, 91), cloudShadow: (80, 71, 80), clouds: 10, plantTint: (0.49, 0.37, 0.421), shelfTint: (0.857, 0.696, 0.667), trainerTint: (0.584, 0.543, 0.582)),
-        "sunrise_snow": .init(cloud: (202, 179, 183), cloudShadow: (177, 157, 161), clouds: 8, plantTint: (0.531, 0.444, 0.526), shelfTint: (0.914, 0.783, 0.8), trainerTint: (0.74, 0.681, 0.702)),
-        "day_clear": .init(cloud: (250, 252, 255), cloudShadow: (220, 221, 224), clouds: 2, plantTint: (0.694, 0.667, 0.632), shelfTint: (0.914, 0.87, 0.933), trainerTint: (0.853, 0.853, 0.84)),
-        "day_cloudy": .init(cloud: (250, 252, 255), cloudShadow: (220, 221, 224), clouds: 7, plantTint: (0.571, 0.593, 0.632), shelfTint: (0.743, 0.783, 0.8), trainerTint: (0.774, 0.777, 0.777)),
-        "day_rain": .init(cloud: (196, 201, 208), cloudShadow: (172, 176, 183), clouds: 9, plantTint: (0.49, 0.519, 0.526), shelfTint: (0.686, 0.696, 0.667), trainerTint: (0.707, 0.71, 0.71)),
-        "day_storm": .init(cloud: (94, 97, 107), cloudShadow: (82, 85, 94), clouds: 10, plantTint: (0.327, 0.37, 0.421), shelfTint: (0.971, 0.87, 0.8), trainerTint: (0.644, 0.637, 0.656)),
-        "day_snow": .init(cloud: (206, 211, 219), cloudShadow: (181, 185, 192), clouds: 8, plantTint: (0.612, 0.667, 0.632), shelfTint: (0.8, 0.87, 0.8), trainerTint: (0.806, 0.809, 0.809)),
-        "sunset_clear": .init(cloud: (240, 150, 140), cloudShadow: (211, 132, 123), clouds: 2, plantTint: (0.776, 0.593, 0.526), shelfTint: (0.971, 0.783, 0.667), trainerTint: (0.774, 0.665, 0.641)),
-        "sunset_cloudy": .init(cloud: (240, 150, 140), cloudShadow: (211, 132, 123), clouds: 7, plantTint: (0.694, 0.519, 0.526), shelfTint: (0.857, 0.696, 0.533), trainerTint: (0.696, 0.614, 0.601)),
-        "sunset_rain": .init(cloud: (174, 126, 128), cloudShadow: (153, 110, 112), clouds: 9, plantTint: (0.612, 0.519, 0.421), shelfTint: (0.8, 0.609, 0.533), trainerTint: (0.64, 0.565, 0.552)),
-        "sunset_storm": .init(cloud: (87, 67, 75), cloudShadow: (76, 58, 66), clouds: 10, plantTint: (0.449, 0.37, 0.316), shelfTint: (0.857, 0.696, 0.533), trainerTint: (0.572, 0.515, 0.534)),
-        "sunset_snow": .init(cloud: (190, 146, 148), cloudShadow: (167, 128, 130), clouds: 8, plantTint: (0.735, 0.593, 0.526), shelfTint: (0.914, 0.696, 0.667), trainerTint: (0.722, 0.638, 0.625)),
-        "night_clear": .init(cloud: (70, 76, 104), cloudShadow: (61, 66, 91), clouds: 2, plantTint: (0.449, 0.37, 0.421), shelfTint: (0.8, 0.696, 0.667), trainerTint: (0.545, 0.512, 0.614)),
-        "night_cloudy": .init(cloud: (70, 76, 104), cloudShadow: (61, 66, 91), clouds: 7, plantTint: (0.408, 0.37, 0.421), shelfTint: (0.743, 0.609, 0.667), trainerTint: (0.506, 0.474, 0.564)),
-        "night_rain": .init(cloud: (52, 56, 78), cloudShadow: (45, 49, 68), clouds: 9, plantTint: (0.367, 0.296, 0.316), shelfTint: (0.686, 0.609, 0.533), trainerTint: (0.471, 0.439, 0.519)),
-        "night_storm": .init(cloud: (38, 41, 58), cloudShadow: (33, 36, 51), clouds: 10, plantTint: (0.367, 0.296, 0.316), shelfTint: (0.686, 0.522, 0.533), trainerTint: (0.456, 0.435, 0.534)),
-        "night_snow": .init(cloud: (52, 56, 78), cloudShadow: (45, 49, 68), clouds: 8, plantTint: (0.408, 0.37, 0.421), shelfTint: (0.8, 0.609, 0.667), trainerTint: (0.523, 0.49, 0.586)),
+        "sunrise_clear": .init(cloud: (250, 200, 196), cloudShadow: (220, 176, 172), clouds: 2, plantTint: (0.571, 0.519, 0.526), shelfTint: (0.743, 0.609, 0.667), trainerTint: (0.76, 0.689, 0.718), palTint: (0.89, 0.785, 0.818)),
+        "sunrise_cloudy": .init(cloud: (250, 200, 196), cloudShadow: (220, 176, 172), clouds: 7, plantTint: (0.49, 0.444, 0.421), shelfTint: (0.914, 0.696, 0.667), trainerTint: (0.713, 0.656, 0.675), palTint: (0.83, 0.743, 0.758)),
+        "sunrise_rain": .init(cloud: (190, 164, 168), cloudShadow: (167, 144, 147), clouds: 9, plantTint: (0.653, 0.519, 0.526), shelfTint: (0.8, 0.696, 0.667), trainerTint: (0.656, 0.602, 0.619), palTint: (0.749, 0.668, 0.679)),
+        "sunrise_storm": .init(cloud: (92, 81, 91), cloudShadow: (80, 71, 80), clouds: 10, plantTint: (0.49, 0.37, 0.421), shelfTint: (0.857, 0.696, 0.667), trainerTint: (0.584, 0.543, 0.582), palTint: (0.699, 0.634, 0.671)),
+        "sunrise_snow": .init(cloud: (202, 179, 183), cloudShadow: (177, 157, 161), clouds: 8, plantTint: (0.531, 0.444, 0.526), shelfTint: (0.914, 0.783, 0.8), trainerTint: (0.74, 0.681, 0.702), palTint: (0.867, 0.779, 0.796)),
+        "day_clear": .init(cloud: (250, 252, 255), cloudShadow: (220, 221, 224), clouds: 2, plantTint: (0.694, 0.667, 0.632), shelfTint: (0.914, 0.87, 0.933), trainerTint: (0.853, 0.853, 0.84), palTint: (1.0, 0.999, 0.984)),
+        "day_cloudy": .init(cloud: (250, 252, 255), cloudShadow: (220, 221, 224), clouds: 7, plantTint: (0.571, 0.593, 0.632), shelfTint: (0.743, 0.783, 0.8), trainerTint: (0.774, 0.777, 0.777), palTint: (0.89, 0.894, 0.891)),
+        "day_rain": .init(cloud: (196, 201, 208), cloudShadow: (172, 176, 183), clouds: 9, plantTint: (0.49, 0.519, 0.526), shelfTint: (0.686, 0.696, 0.667), trainerTint: (0.707, 0.71, 0.71), palTint: (0.792, 0.795, 0.793)),
+        "day_storm": .init(cloud: (94, 97, 107), cloudShadow: (82, 85, 94), clouds: 10, plantTint: (0.327, 0.37, 0.421), shelfTint: (0.971, 0.87, 0.8), trainerTint: (0.644, 0.637, 0.656), palTint: (0.773, 0.762, 0.777)),
+        "day_snow": .init(cloud: (206, 211, 219), cloudShadow: (181, 185, 192), clouds: 8, plantTint: (0.612, 0.667, 0.632), shelfTint: (0.8, 0.87, 0.8), trainerTint: (0.806, 0.809, 0.809), palTint: (0.936, 0.94, 0.938)),
+        "sunset_clear": .init(cloud: (240, 150, 140), cloudShadow: (211, 132, 123), clouds: 2, plantTint: (0.776, 0.593, 0.526), shelfTint: (0.971, 0.783, 0.667), trainerTint: (0.774, 0.665, 0.641), palTint: (0.913, 0.756, 0.704)),
+        "sunset_cloudy": .init(cloud: (240, 150, 140), cloudShadow: (211, 132, 123), clouds: 7, plantTint: (0.694, 0.519, 0.526), shelfTint: (0.857, 0.696, 0.533), trainerTint: (0.696, 0.614, 0.601), palTint: (0.799, 0.681, 0.651)),
+        "sunset_rain": .init(cloud: (174, 126, 128), cloudShadow: (153, 110, 112), clouds: 9, plantTint: (0.612, 0.519, 0.421), shelfTint: (0.8, 0.609, 0.533), trainerTint: (0.64, 0.565, 0.552), palTint: (0.722, 0.614, 0.585)),
+        "sunset_storm": .init(cloud: (87, 67, 75), cloudShadow: (76, 58, 66), clouds: 10, plantTint: (0.449, 0.37, 0.316), shelfTint: (0.857, 0.696, 0.533), trainerTint: (0.572, 0.515, 0.534), palTint: (0.679, 0.593, 0.602)),
+        "sunset_snow": .init(cloud: (190, 146, 148), cloudShadow: (167, 128, 130), clouds: 8, plantTint: (0.735, 0.593, 0.526), shelfTint: (0.914, 0.696, 0.667), trainerTint: (0.722, 0.638, 0.625), palTint: (0.834, 0.714, 0.684)),
+        "night_clear": .init(cloud: (70, 76, 104), cloudShadow: (61, 66, 91), clouds: 2, plantTint: (0.449, 0.37, 0.421), shelfTint: (0.8, 0.696, 0.667), trainerTint: (0.545, 0.512, 0.614), palTint: (0.661, 0.617, 0.753)),
+        "night_cloudy": .init(cloud: (70, 76, 104), cloudShadow: (61, 66, 91), clouds: 7, plantTint: (0.408, 0.37, 0.421), shelfTint: (0.743, 0.609, 0.667), trainerTint: (0.506, 0.474, 0.564), palTint: (0.605, 0.556, 0.664)),
+        "night_rain": .init(cloud: (52, 56, 78), cloudShadow: (45, 49, 68), clouds: 9, plantTint: (0.367, 0.296, 0.316), shelfTint: (0.686, 0.609, 0.533), trainerTint: (0.471, 0.439, 0.519), palTint: (0.557, 0.508, 0.597)),
+        "night_storm": .init(cloud: (38, 41, 58), cloudShadow: (33, 36, 51), clouds: 10, plantTint: (0.367, 0.296, 0.316), shelfTint: (0.686, 0.522, 0.533), trainerTint: (0.456, 0.435, 0.534), palTint: (0.536, 0.499, 0.612)),
+        "night_snow": .init(cloud: (52, 56, 78), cloudShadow: (45, 49, 68), clouds: 8, plantTint: (0.408, 0.37, 0.421), shelfTint: (0.8, 0.609, 0.667), trainerTint: (0.523, 0.49, 0.586), palTint: (0.628, 0.579, 0.696)),
     ]
 }

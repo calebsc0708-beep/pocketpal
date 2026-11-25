@@ -14,6 +14,8 @@ final class PalWanderer: ObservableObject {
     @Published private(set) var showingBack = false   // true while walking away from the viewer
     @Published private(set) var flipped = false       // mirror the artwork horizontally
     @Published private(set) var isWalking = false
+    /// When the pal was last tapped (it hops and a heart floats up).
+    @Published private(set) var pokedAt: Date?
     /// Which pal's art to use for facing decisions.
     var species: PalSpecies = .eevee
 
@@ -167,6 +169,28 @@ final class PalWanderer: ObservableObject {
 
     private var flippedMovingRight = false
 
+    /// Tapped: hop on the spot and face you (unless it's busy hopping onto furniture).
+    func poke(_ now: Date = Date()) {
+        guard jump == nil else { return }
+        pokedAt = now
+        if target != nil { idleUntil = now.addingTimeInterval(1.2) }
+        target = nil
+        heading = nil
+        isWalking = false
+        if doing == nil || doing?.back == true {
+            showingBack = false
+            flipped = needsFlip(movingRight: flippedMovingRight, clip: species.front)
+        }
+        if doing == nil { idleUntil = max(idleUntil, now.addingTimeInterval(1.5)) }
+    }
+
+    /// Extra lift (room px) from a tap hop.
+    func pokeHop(_ now: Date) -> CGFloat {
+        guard let pokedAt else { return 0 }
+        let p = now.timeIntervalSince(pokedAt) / 0.45
+        return p >= 0 && p < 1 ? CGFloat(sin(p * .pi)) * 6 : 0
+    }
+
     /// Decide which clip and which way to mirror, from the direction of travel.
     private func face(dx: CGFloat, dy: CGFloat) {
         // Walking away from the viewer (toward the back wall) -> show the back.
@@ -187,6 +211,11 @@ final class PalWanderer: ObservableObject {
 
 // MARK: - Room view
 
+extension RoomLook {
+    /// Multiply the pal's colors by this so it's lit like the room (white on a clear day).
+    var palColor: Color { Color(red: palTint.0, green: palTint.1, blue: palTint.2) }
+}
+
 /// The room background, its animated details, and the wandering, animated pal.
 struct PalRoomView: View {
     var time: RoomTime = .day
@@ -205,7 +234,9 @@ struct PalRoomView: View {
                 let frame = clip.frame(at: context.date.timeIntervalSince(start))
                 let side = CGFloat(clip.size) * pal.depthScale * scale
                 let t = context.date.timeIntervalSince(start)
-                let walkHop: CGFloat = pal.isWalking ? CGFloat(abs(sin(t * 9))) * 1.5 * scale : 0
+                let walkHop: CGFloat = (pal.isWalking ? CGFloat(abs(sin(t * 9))) * 1.5 * scale : 0)
+                    + pal.pokeHop(context.date) * scale
+                let heartAge: Double = pal.pokedAt.map { context.date.timeIntervalSince($0) } ?? 9
 
                 ZStack(alignment: .topLeading) {
                     Image(time.roomImage(weather))
@@ -216,6 +247,9 @@ struct PalRoomView: View {
                     PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep)
                         .frame(width: geo.size.width, height: geo.size.height)
 
+                    RoomDecorationLayer(date: context.date, time: time, weather: weather)
+                        .frame(width: geo.size.width, height: geo.size.height)
+
                     if asleep {
                         PalSleepLayer(time: time, weather: weather, t: t, scale: scale)
                             .frame(width: geo.size.width, height: geo.size.height)
@@ -224,6 +258,7 @@ struct PalRoomView: View {
                     if !asleep {
                     Image(frame.image)
                         .resizable()
+                        .colorMultiply(RoomLook.of(time, weather).palColor)
                         .interpolation(.none)
                         .frame(width: side, height: side)
                         .scaleEffect(x: pal.flipped ? -1 : 1, y: 1)
@@ -233,6 +268,22 @@ struct PalRoomView: View {
                         .position(x: pal.position.x * scale, y: pal.position.y * scale - side / 2)
                     }
 
+                    if !asleep && heartAge < 1.2 {
+                        PixelHeart(scale: scale)
+                            .opacity(1 - heartAge / 1.2)
+                            .position(x: pal.position.x * scale,
+                                      y: (pal.position.y - CGFloat(heartAge) * 14) * scale - side - 4 * scale)
+                    }
+
+                }
+                .contentShape(Rectangle())
+                .onTapGesture(coordinateSpace: .local) { location in
+                    // tap on (or near) the pal: it hops and a heart pops up
+                    let half = side / 2 + 6 * scale
+                    let center = CGPoint(x: pal.position.x * scale, y: pal.position.y * scale - side / 2)
+                    if !asleep && abs(location.x - center.x) < half && abs(location.y - center.y) < half {
+                        pal.poke(context.date)
+                    }
                 }
                 .onChange(of: context.date) { _, now in
                     pal.species = species
@@ -289,5 +340,24 @@ struct PalSleepLayer: View {
             }
             .allowsHitTesting(false)
         }
+    }
+}
+
+/// A small pixel heart (7x6 room px).
+struct PixelHeart: View {
+    let scale: CGFloat
+    private static let rows = [".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."]
+
+    var body: some View {
+        Canvas { ctx, _ in
+            for (r, row) in Self.rows.enumerated() {
+                for (c, ch) in row.enumerated() where ch == "#" {
+                    ctx.fill(Path(CGRect(x: CGFloat(c) * scale, y: CGFloat(r) * scale, width: scale, height: scale)),
+                             with: .color(Color(red: 246 / 255, green: 110 / 255, blue: 140 / 255)))
+                }
+            }
+        }
+        .frame(width: 7 * scale, height: 6 * scale)
+        .allowsHitTesting(false)
     }
 }

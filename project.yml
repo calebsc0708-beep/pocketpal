@@ -20,6 +20,7 @@ targets:
       - App
       - Shared
       - Pal
+      - PalGen      # made by tools/build_pals.py from the Pals folder
       - path: Generated/Sprites
         type: folder
       - path: Generated/Fonts
@@ -48,10 +49,11 @@ targets:
       - Widget
       - Shared
       # the room widget reuses these from the app
-      - Pal/PalSpriteData.swift
+      - PalGen
       - Pal/PalActivity.swift
       - Pal/PalRoomAmbience.swift
       - Pal/PalRoomView.swift
+      - Pal/RoomDecorations.swift
       - Pal/RoomLook.swift
       - Pal/WeatherSync.swift
       - Pal/PalSprites.xcassets

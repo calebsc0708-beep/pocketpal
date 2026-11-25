@@ -23,6 +23,7 @@ jobs:
         run: |
           python3 -m venv .venv
           .venv/bin/pip install -q fonttools pillow
+          .venv/bin/python tools/build_pals.py
           .venv/bin/python tools/make_fonts.py
           .venv/bin/python tools/build_room_fonts.py
 

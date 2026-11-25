@@ -1,0 +1,12 @@
+# made during the build
+Generated/
+PalGen/
+Support/
+build/
+*.xcodeproj
+.venv/
+__pycache__/
+# island frames for the pals are made from Pals/ by tools/build_pals.py
+Sprites/eevee_*.png
+Sprites/pikachu_*.png
+Sprites/minccino_*.png

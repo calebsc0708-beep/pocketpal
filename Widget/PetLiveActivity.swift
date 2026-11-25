@@ -7,6 +7,7 @@ struct PocketPalWidgetBundle: WidgetBundle {
     var body: some Widget {
         PetLiveActivity()
         RoomWidget()
+        PalLockWidget()
     }
 }
 
