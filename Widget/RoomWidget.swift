@@ -20,7 +20,7 @@ enum RoomMotion: String, AppEnum {
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Motion"
     static var caseDisplayRepresentations: [RoomMotion: DisplayRepresentation] = [
-        .still: "Still (new spot each refresh)",
+        .still: "Still (new spot every 5 min)",
         .idle: "Idle (animates once a second)",
         .hop: "Hop around (once a second)",
     ]
@@ -70,7 +70,7 @@ struct RoomProvider: AppIntentTimelineProvider {
         let seed = Int.random(in: 0..<10)
         let dates = [now] + (0..<120).map { firstMinute.addingTimeInterval(Double($0) * 60) }
         let entries = dates.map { date -> RoomEntry in
-            let block = Int(date.timeIntervalSince(now) / (15 * 60))   // Still mode: new spot every 15 min
+            let block = Int(date.timeIntervalSince(now) / (5 * 60))    // Still mode: new spot every 5 min
             return RoomEntry(date: date,
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                              weather: snap?.weather ?? .clear,

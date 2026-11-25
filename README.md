@@ -12,7 +12,7 @@ weather (clouds, rain, snow, storms, sunrise and sunset). The original Dynamic I
 
 ## Room widget (medium and large)
 Add **PokePal Room** from the widget gallery, then long-press it → **Edit Widget** to choose the pal and motion:
-- **Still**: the pal stands somewhere new every 15 minutes
+- **Still**: the pal stands somewhere new every 5 minutes
 - **Idle**: plays the pal's animation in place, once a second
 - **Hop around**: the pal hops between 10 spots on the rug, once a second
 

@@ -66,7 +66,7 @@ struct SettingsView: View {
                 PalCard {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Long-press your Home Screen, tap Edit, then Add Widget and pick PokePal. Long-press the widget and choose Edit Widget to pick its pal and motion:")
-                        Text("• Still: a new spot every refresh")
+                        Text("• Still: a new spot every 5 minutes")
                         Text("• Idle: animates in place once a second")
                         Text("• Hop: hops around the room once a second")
                     }
