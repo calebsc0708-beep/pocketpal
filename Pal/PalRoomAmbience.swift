@@ -208,7 +208,8 @@ struct PalRoomAmbience: View {
 
             // ---- digital clock with blinking colon (your phone's time) ----
             let now = Calendar.current.dateComponents([.hour, .minute, .second], from: clock ?? Date())
-            let hh = now.hour ?? 0, mm = now.minute ?? 0
+            let h24 = now.hour ?? 0, mm = now.minute ?? 0
+            let hh = h24 % 12 == 0 ? 12 : h24 % 12          // standard 12-hour time (1:05, 12:30)
             let digits = [hh / 10, hh % 10, mm / 10, mm % 10]
             let xs: [Double] = [216, 220, 226, 230]
             let lcd: (Double, Double, Double) = (120, 240, 160)
