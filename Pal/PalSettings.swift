@@ -19,8 +19,29 @@ final class PalSettings: ObservableObject {
         // make sure the widgets know the current pal (e.g. after an update)
         if SharedPal.species != saved.rawValue {
             SharedPal.save(saved.rawValue)
-            WidgetCenter.shared.reloadAllTimelines()
+            Self.reloadWidgets()
         }
+    }
+
+    /// True once the pal changed this session; the widgets get one more reload when the app is left.
+    private(set) var widgetsNeedReload = false
+
+    /// Ask the room and Lock Screen widgets to redraw with the current pal. iOS can drop a reload asked for
+    /// while a widget isn't on screen (the Lock Screen never is while you're in the app), so ask by kind,
+    /// again a moment later, and once more when the app goes to the background (see HomeView).
+    static func reloadWidgets() {
+        let center = WidgetCenter.shared
+        for kind in ["PokePalLock", "PokePalRoom"] { center.reloadTimelines(ofKind: kind) }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            for kind in ["PokePalLock", "PokePalRoom"] { center.reloadTimelines(ofKind: kind) }
+        }
+    }
+
+    func appDidLeave() {
+        guard widgetsNeedReload else { return }
+        widgetsNeedReload = false
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     /// Pick the room pal. Also makes it the Dynamic Island sprite, so they always match.
@@ -31,7 +52,8 @@ final class PalSettings: ObservableObject {
         save()
         // the room and Lock Screen widgets follow the app's pal
         SharedPal.save(species.rawValue)
-        WidgetCenter.shared.reloadAllTimelines()
+        Self.reloadWidgets()
+        widgetsNeedReload = true
         if syncIsland {
             // same keys the Dynamic Island section reads with @AppStorage
             defaults.set(species.rawValue, forKey: "selectedSprite")

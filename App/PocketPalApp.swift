@@ -3,8 +3,14 @@ import ActivityKit
 
 @main
 struct PocketPalApp: App {
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         WindowGroup { RootView() }
+            .onChange(of: scenePhase) { _, phase in
+                // leaving the app: the Lock Screen is about to show, so redraw its pal if it changed
+                if phase == .background { PalSettings.shared.appDidLeave() }
+            }
     }
 }
 

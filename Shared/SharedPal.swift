@@ -33,6 +33,8 @@ enum SharedPal {
     static var species: String? { defaults?.string(forKey: key) }
 
     static func save(_ rawValue: String) {
-        defaults?.set(rawValue, forKey: key)
+        guard let d = defaults else { return }
+        d.set(rawValue, forKey: key)
+        d.synchronize()   // flush now, so a widget asked to reload right after reads the new pal
     }
 }
