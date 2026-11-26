@@ -39,6 +39,19 @@ def frames_of(gif):
     return out
 
 
+def trimmed(frames):
+    """Cut away the empty border every frame of a clip shares (some GIFs come padded, e.g. 96x96 with a
+    small pal inside), keeping the frames lined up with each other. Less to store and draw everywhere."""
+    box = None
+    for f, _ in frames:
+        bb = f.getbbox()
+        if bb:
+            box = bb if box is None else (min(box[0], bb[0]), min(box[1], bb[1]), max(box[2], bb[2]), max(box[3], bb[3]))
+    if box is None:
+        return frames
+    return [(f.crop(box), dur) for f, dur in frames]
+
+
 def imageset(name, img):
     d = CAT / f"{name}.imageset"
     d.mkdir(parents=True)
@@ -68,7 +81,7 @@ def main():
     if not pals:
         raise SystemExit("No pals found in Pals/")
 
-    clips = {key: {c: frames_of(d / f"{c}.gif") for c in ("front", "back")} for key, d, _ in pals}
+    clips = {key: {c: trimmed(frames_of(d / f"{c}.gif")) for c in ("front", "back")} for key, d, _ in pals}
     canvas = max([MIN_CANVAS] + [max(f.width, f.height) for c in clips.values() for fr in c.values() for f, _ in fr])
 
     data = {}

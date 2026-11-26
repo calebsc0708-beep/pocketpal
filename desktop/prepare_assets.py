@@ -11,8 +11,23 @@ from PIL import Image, ImageSequence
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "desktop", "assets")
-NAMES = {"eevee": "Eevee", "pikachu": "Pikachu", "minccino": "Minccino", "absol": "Absol", "rei_chibi": "Rei"}
+NAMES = {"rei_chibi": "Rei"}   # pals in Pals/ take their name from pal.json (or the folder name)
 
+
+def save_png(img, path):
+    """Lossless and small: pixel art gets a colour palette (exactly the same pixels) when it fits in 256."""
+    import numpy as np
+    a = np.asarray(img.convert("RGBA"))
+    packed = np.ascontiguousarray(a).view(np.uint32).reshape(-1)
+    packed = np.where(a[..., 3].reshape(-1) == 0, 0, packed)
+    uniq, idx = np.unique(packed, return_inverse=True)
+    if len(uniq) <= 256:
+        cols = uniq.view(np.uint8).reshape(-1, 4)
+        p = Image.fromarray(idx.reshape(a.shape[:2]).astype(np.uint8), "P")
+        p.putpalette(cols[:, :3].flatten().tolist())
+        p.save(path, optimize=True, transparency=bytes(cols[:, 3].tolist()))
+    else:
+        img.save(path, optimize=True)
 
 def hard_alpha(im):
     """Pixel art: every pixel is either fully there or fully gone (needed for the see-through window)."""
@@ -37,7 +52,7 @@ def save_pal(key, frames, durs):
     r = max(b[2] for b in boxes); b_ = max(b[3] for b in boxes)
     d = os.path.join(OUT, key); os.makedirs(d, exist_ok=True)
     for i, f in enumerate(frames):
-        f.crop((l, t, r, b_)).save(os.path.join(d, f"{i:03d}.png"))
+        save_png(f.crop((l, t, r, b_)), os.path.join(d, f"{i:03d}.png"))
     json.dump({"name": NAMES.get(key, key.title()), "durations": durs, "size": [r - l, b_ - t]},
               open(os.path.join(d, "frames.json"), "w"))
     print(f"{key}: {len(frames)} frames, {r - l}x{b_ - t}")
@@ -49,6 +64,8 @@ def main():
     done = set()
     for gif in sorted(glob.glob(os.path.join(ROOT, "Pals", "*", "front.gif"))):
         key = os.path.basename(os.path.dirname(gif))
+        meta = os.path.join(os.path.dirname(gif), "pal.json")
+        NAMES[key] = json.load(open(meta)).get("name", key.title()) if os.path.exists(meta) else key.title()
         save_pal(key, *gif_frames(gif)); done.add(key)
     # island-only sprites with numbered frames
     seq = {}

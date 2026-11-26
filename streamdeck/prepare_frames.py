@@ -19,6 +19,21 @@ FLOOR = 132          # pal's feet line on the key
 BG_CROP = (60, 76, 132, 148)   # 72x72 room px: window seat, desk leg, rug and floor -> doubled to 144
 
 
+def save_png(img, path):
+    """Lossless and small: pixel art gets a colour palette (exactly the same pixels) when it fits in 256."""
+    import numpy as np
+    a = np.asarray(img.convert("RGBA"))
+    packed = np.ascontiguousarray(a).view(np.uint32).reshape(-1)
+    packed = np.where(a[..., 3].reshape(-1) == 0, 0, packed)
+    uniq, idx = np.unique(packed, return_inverse=True)
+    if len(uniq) <= 256:
+        cols = uniq.view(np.uint8).reshape(-1, 4)
+        p = Image.fromarray(idx.reshape(a.shape[:2]).astype(np.uint8), "P")
+        p.putpalette(cols[:, :3].flatten().tolist())
+        p.save(path, optimize=True, transparency=bytes(cols[:, 3].tolist()))
+    else:
+        img.save(path, optimize=True)
+
 def main():
     subprocess.run([sys.executable, os.path.join(ROOT, "desktop", "prepare_assets.py")], check=True)
     out = os.path.join(PLUGIN, "imgs")
@@ -32,14 +47,14 @@ def main():
             continue
         meta = json.load(open(meta_p))
         w, h = meta["size"]
-        s = max(1, min(3, 128 // h, 136 // w))           # whole-number pixel scale that fits the key
+        s = max(1, min(3, 128 // h, 160 // w))           # whole-number pixel scale; a swinging tail may clip a little
         d = os.path.join(out, "pals", key); os.makedirs(d)
         for i in range(len(meta["durations"])):
             f = Image.open(os.path.join(DESK, key, f"{i:03d}.png")).convert("RGBA")
             f = f.resize((f.width * s, f.height * s), Image.NEAREST)
             c = Image.new("RGBA", (KEY, KEY))
             c.paste(f, ((KEY - f.width) // 2, FLOOR - f.height), f)
-            c.save(os.path.join(d, f"{i:03d}.png"), optimize=True)
+            save_png(c, os.path.join(d, f"{i:03d}.png"))
         json.dump({"name": meta["name"], "durations": meta["durations"], "scale": s},
                   open(os.path.join(d, "pal.json"), "w"))
         print(f"{key}: {len(meta['durations'])} frames at {s}x")
@@ -57,7 +72,7 @@ def main():
     dark.alpha_composite(sh); dark.convert("RGB").save(os.path.join(out, "bg", "dark.png"))
 
     # --- icons: plugin/category/action icons from the pal, key default image from the day room + eevee
-    eevee = Image.open(os.path.join(out, "pals", "eevee", "000.png"))
+    eevee = Image.open(os.path.join(out, "pals", "eevee", "000.png")).convert("RGBA")
     def icon(path, size, mono=False):
         src = eevee.crop(eevee.getbbox())
         if mono:   # Stream Deck wants white glyphs for the action list / category
@@ -69,6 +84,17 @@ def main():
     for base, size, mono in (("plugin/category-icon", 28, True), ("actions/pal/icon", 20, True), ("plugin/marketplace", 256, False)):
         icon(os.path.join(out, base + ".png"), size, mono)
         icon(os.path.join(out, base + "@2x.png"), size * 2, mono)
+    # the key's settings list every pal that was built
+    pals = sorted(k for k in os.listdir(os.path.join(out, "pals")))
+    order = {"eevee": 0, "pikachu": 1, "minccino": 2}
+    pals.sort(key=lambda k: (order.get(k, 9), k))
+    opts = "\n".join(f'\t\t\t\t<option value="{k}">{json.load(open(os.path.join(out, "pals", k, "pal.json")))["name"]}</option>'
+                     for k in pals)
+    ui = os.path.join(PLUGIN, "ui", "pal.html")
+    html = open(ui).read()
+    start = html.index('<sdpi-select setting="pal" default="eevee">') + len('<sdpi-select setting="pal" default="eevee">')
+    end = html.index("</sdpi-select>", start)
+    open(ui, "w").write(html[:start] + "\n" + opts + "\n\t\t\t" + html[end:])
     keyimg = Image.open(os.path.join(out, "bg", "day.png")).convert("RGBA"); keyimg.alpha_composite(eevee)
     keyimg.save(os.path.join(out, "actions", "pal", "key@2x.png"))
     keyimg.resize((72, 72), Image.NEAREST).save(os.path.join(out, "actions", "pal", "key.png"))

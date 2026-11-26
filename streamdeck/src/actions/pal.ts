@@ -58,6 +58,7 @@ const HEART = ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"]
 class Running {
 	start = Date.now();
 	hop = -1;
+	last = "";   // what's on the key now: skip sending the same picture again
 	heart = -1;
 	timer: NodeJS.Timeout;
 	constructor(public action: KeyAction<PalSettings>, public settings: PalSettings) {
@@ -69,8 +70,12 @@ class Running {
 		// pick the frame by elapsed time so it plays at the GIF's own speed
 		let t = (Date.now() - this.start) % pal.total, i = 0;
 		while (t >= pal.durations[i]) { t -= pal.durations[i]; i++; }
-		const bg = getBackground(this.settings.background === "dark" ? "dark" : timeOfDay());
+		const bgName = this.settings.background === "dark" ? "dark" : timeOfDay();
+		const bg = getBackground(bgName);
 		const lift = this.hop >= 0 ? HOP[this.hop] : 0;
+		const state = `${this.settings.pal}|${i}|${bgName}|${this.hop}|${this.heart}`;
+		if (state === this.last) return;      // nothing changed since the last tick (e.g. a slow frame)
+		this.last = state;
 		let heart = "";
 		if (this.heart >= 0) {
 			const y = 34 - this.heart * 3, x = 96, a = Math.max(0, 1 - this.heart / 12);
@@ -110,7 +115,7 @@ export class PalKey extends SingletonAction<PalSettings> {
 
 	override onDidReceiveSettings(ev: DidReceiveSettingsEvent<PalSettings>): void {
 		const r = this.running.get(ev.action.id);
-		if (r) { r.settings = ev.payload.settings; r.start = Date.now(); r.draw(); }
+		if (r) { r.settings = ev.payload.settings; r.start = Date.now(); r.last = ""; r.draw(); }
 	}
 
 	override onKeyDown(ev: KeyDownEvent<PalSettings>): void {
