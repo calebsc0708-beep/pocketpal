@@ -198,14 +198,15 @@ struct RoomWidgetView: View {
                 .interpolation(.none)
                 .frame(width: roomWidth * s, height: 160 * s)
 
+            // holiday decorations (drawn into the room, lit) go under everything that moves
+            RoomDecorationLayer(date: entry.date, time: entry.time, weather: entry.weather, wide: wide)
+                .frame(width: roomWidth * s, height: 160 * s)
+
             // the clock: updates itself every minute (see clock(scale:))
             clock(scale: s, night: night)
 
             // everything else that moves, once a second (clouds, rain/snow, notes, fish, candle, plant...)
             fxFont("PokePal-fx-\(entry.time.rawValue)-\(entry.weather.rawValue)", origin: .zero, side: 256, scale: s)
-
-            RoomDecorationLayer(date: entry.date, time: entry.time, weather: entry.weather)
-                .frame(width: 256 * s, height: 160 * s)
 
             // string lights twinkling (holiday colors, or the usual warm ones in the evening)
             if let palette = RoomDecorations.lightHoliday(for: entry.date) ?? (lightsOn ? "default" : nil) {

@@ -14,19 +14,21 @@ d = ImageDraw.Draw(img)
 emis = Image.new("L", (W, H), 0)          # emissive pixels ignore lighting
 de = ImageDraw.Draw(emis)
 
+# Anything solid drawn on top of a glowing pixel (sky, lamp) stops it glowing: the curtains, pillows
+# and window frame in front of the glass get lit like everything else.
 def P(pts, c, e=False):
     d.polygon(pts, fill=c)
-    if e: de.polygon(pts, fill=255)
+    de.polygon(pts, fill=255 if e else 0)
 def R(x0, y0, x1, y1, c, e=False):
     d.rectangle([x0, y0, x1, y1], fill=c)
-    if e: de.rectangle([x0, y0, x1, y1], fill=255)
+    de.rectangle([x0, y0, x1, y1], fill=255 if e else 0)
 def px(x, y, c, e=False):
     if 0 <= x < W and 0 <= y < H:
         img.putpixel((x, y), c)
-        if e: emis.putpixel((x, y), 255)
+        emis.putpixel((x, y), 255 if e else 0)
 def E(box, c, e=False):
     d.ellipse(box, fill=c)
-    if e: de.ellipse(box, fill=255)
+    de.ellipse(box, fill=255 if e else 0)
 
 LAMP_ON = TIME in ("night", "sunset") or WEATHER == "storm" or (TIME == "sunrise" and WEATHER != "clear")
 # ---------- palette ----------
@@ -79,6 +81,26 @@ def block(x0, y0, x1, y1, d0, d1, front, top=None, side=None, bottom=None, e=Fal
 def pj(X, Y, Z): return (VPX + 400 * X / Z, VPY + 400 * (1.6 - Y) / Z)
 def to_world(x, y, dd=0.0):
     Z = 10.0 - dd; return ((x - VPX) * Z / 400, 1.6 - (y - VPY) * Z / 400, Z)
+
+ITEMS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "items")
+def item(name, div):
+    """An item sprite shrunk by a whole factor (1 sprite pixel = 1 room pixel), hard-edged like the room."""
+    im = Image.open(os.path.join(ITEMS, f"{name}.png")).convert("RGBA")
+    w, h = max(1, round(im.width / div)), max(1, round(im.height / div))
+    im = im.resize((w, h), Image.BOX)
+    im.putalpha(im.getchannel("A").point(lambda v: 255 if v >= 128 else 0))
+    return im
+def place(name, div, cx, bottom):
+    """Stand an item on a surface: centred on x, its bottom on y."""
+    it = item(name, div)
+    x, y = round(cx - it.width / 2), round(bottom - it.height)
+    img.paste(it, (x, y), it)
+    de.bitmap((x, y), it.getchannel("A"), fill=0)          # lit like the room, never glowing
+HOLIDAY = os.environ.get("HOLIDAY")         # draw that holiday's decorations into the room
+import holiday as _holiday
+def holiday_layer(layer):
+    globals()["_glass_now"] = np.asarray(emis) > 0
+    _holiday.draw(layer, globals())
 
 # ---------- room shell ----------
 R(0, 0, W, H, FLOOR)
@@ -231,6 +253,7 @@ R(155, 72, 157, 77, CREAM); (px(156, 71, (255, 200, 90), True), px(156, 70, (255
 R(162, 76, 170, 77, WOOD_D); R(165, 67, 166, 76, WOOD_D)
 P([(159, 67), (172, 67), (169, 59), (162, 59)], LAMP if LAMP_ON else (236, 214, 176), LAMP_ON)
 # chair (back toward viewer)
+holiday_layer("desk")
 _before_chair = img.copy()
 C0, C1 = 0.95, 1.4        # chair from 0.95 m to 1.4 m out from the wall
 for lx in (133, 151): block(lx, 87, lx + 2, FL, C0, C0 + 0.05, WOOD_D)                 # back legs (far)
@@ -364,6 +387,7 @@ for x in range(0, LW, 2):
         c = c if on else (110, 96, 96)
         px(x, y + 1, c, on); px(x, y + 2, c, on); bulbs.append((x, y + 2))
 
+holiday_layer("wall")
 # ---------- wide room corner: floor lamp, small rug, armchair ----------
 def shade(c, k): return tuple(max(0, min(255, int(v * k))) for v in c)
 def wbox(cx, cz, a, dx, dz, w, dep, y0, y1, base, kt=1.14, kf=1.0, ks=0.74, edge=True):
@@ -443,6 +467,7 @@ E([150, 138, 158, 142], (200, 160, 200)); E([158, 139, 166, 143], (200, 160, 200
 
 
 _snap_postrug = img.copy()
+holiday_layer("floor")
 # ---------- the pal (scene-dependent) ----------
 BLUSH = (240, 140, 160); HI = (255, 255, 255)
 def zzz(x, y):
@@ -537,6 +562,26 @@ elif S == "hide":                     # storm: hiding under the quilt
     for dx in (202, 210): R(dx - 1, 96, dx + 1, 98, (250, 250, 240)); px(dx, 97, DARK)
     for (x, y) in [(186, 92), (224, 92), (188, 86), (222, 84)]: px(x, y, CREAM)
 
+# ---------- trainer's things (wide room): user-provided item sprites, at the room's own pixel scale ----------
+if WIDE:
+    # berries + fruit in a wooden bowl on the window seat, in front of the folded blanket
+    place("berry_blue", 3, 82, 77); place("fruit_yellow", 3, 88, 77); place("berry_orange", 3, 85, 76)
+    E([77, 75, 93, 80], (118, 82, 58)); E([78, 75, 92, 77], (156, 112, 78)); R(79, 78, 91, 78, (100, 68, 48))
+    place("berry_blue", 3, 81, 78); place("berry_orange", 3, 89, 78)
+    # potions lined up on the shelf above the desk
+    for i, p in enumerate(("potion_purple", "potion_pink", "potion_orange")):
+        place(p, 3, 159 + i * 6, 50)
+    # an Ultra Ball tipped on its side on the headboard (nothing hangs above there)
+    place("ultraball_15", 3, 250, 60)
+    # Poké Ball (turned) and black glasses on the nightstand (glasses resting on the books)
+    place("pokeball_13", 3, 272, 83); place("glasses_black", 3, 287, 78)
+    # a Great Ball tilted back on the armchair's seat cushion
+    place("greatball_12", 3, 314, 91)
+    # a Fast Ball on the little rug by the armchair
+    place("fastball", 3, 318, 136)
+    # round glasses resting on the book stack on the rug
+    place("glasses_round", 3, 131, 123)
+
 _snap_prefg = img.copy()
 # ---------- foreground (closer, darker) ----------
 P([(-4, 114), (24, 114), (27, 160), (-4, 160)], POT)
@@ -554,6 +599,8 @@ E([238, 18, 254, 28], POT_D); E([238, 17, 254, 23], POT); E([240, 18, 252, 22], 
 
 # ---------- shadows under furniture ----------
 shadow = Image.new("L", (W, H), 0); sd = ImageDraw.Draw(shadow)
+for kind, geom, val in globals().get("DECO_SHADOWS", []):          # holiday decorations' contact shadows
+    (sd.ellipse if kind == "ellipse" else sd.polygon)(geom, fill=val)
 def fpoly(pts): return _q([wp(x, FL, dd) for x, dd in pts])
 sd.polygon(fpoly([(116, 0), (174, 0), (176, DESK_D + 0.15), (114, DESK_D + 0.15)]), fill=90)              # desk
 sd.polygon(_q([pj(XL, 0, za - 0.1), pj(XL + SH_E + 0.12, 0, za - 0.1), pj(XL + SH_E + 0.12, 0, zb), pj(XL, 0, zb)]), fill=90)  # bookshelf
@@ -596,6 +643,8 @@ if LAMP_ON and WIDE:
     add(NX, NY - 9, 46, (1.0, 0.72, 0.42), 0.6)                                                  # nightstand lamp
     add(LMX, LMY - 4, 80, (1.0, 0.70, 0.40), 0.8 if NIGHT or WEATHER == "storm" else 0.45)        # floor lamp
 if NIGHT: add(156, 70, 26, (1.0, 0.68, 0.35), 0.45)
+for (lx_, ly_, lr_, lc_, lk_) in globals().get("DECO_LIGHTS", []):   # glowing holiday decorations
+    add(lx_, ly_, lr_, lc_, lk_)
 bulbs_on = TIME in ("night", "sunset") or WEATHER in ("storm", "rain") and TIME != "day"
 if bulbs_on:
     for (bx_, by_) in bulbs: add(bx_, by_, 16, (1.0, 0.72, 0.5), 0.25)

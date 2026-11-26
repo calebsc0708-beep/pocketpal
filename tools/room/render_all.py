@@ -34,4 +34,25 @@ for wide in (False, True):
                 Image.fromarray(room).crop(box).save(f"final/overlays/{name}{tag}_{t}_{w}.png")
     json.dump(boxes, open(f"final/overlays/boxes{tag}.json", "w"))
     print("overlay boxes", tag or "normal", boxes)
+# holiday decorations: rendered into the room (lit, in perspective, behind the chair...), then kept as
+# overlays of just the pixels they change, one per holiday x time x weather x room size
+HOLS = ["halloween", "autumn", "christmas", "newyear", "valentine"]
+os.makedirs("final/deco", exist_ok=True)
+import numpy as np
+for wide in (False, True):
+    env0 = dict(os.environ, WIDE="1" if wide else "0"); out = "out5_wide" if wide else "out5"
+    plain_dir = "final/wide" if wide else "final/normal"
+    for h in HOLS:
+        env = dict(env0, HOLIDAY=h)
+        for t in T:
+            for w in WS:
+                subprocess.run(["python3", "room.py", t, w], env=env, check=True, capture_output=True)
+                hol = np.asarray(Image.open(f"{out}/room_{t}_{w}.png").convert("RGBA"))
+                plain = np.asarray(Image.open(f"{plain_dir}/room_{t}_{w}.png").convert("RGBA"))
+                ov = hol.copy(); ov[..., 3] = np.where((hol[..., :3] != plain[..., :3]).any(2), 255, 0)
+                Image.fromarray(ov).save(f"final/deco/deco{'w' if wide else ''}_{h}_{t}_{w}.png")
+    # put the plain room back in the out folder
+    for t in T:
+        for w in WS:
+            shutil.copy(f"{plain_dir}/room_{t}_{w}.png", f"{out}/room_{t}_{w}.png")
 print("done")

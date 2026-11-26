@@ -263,11 +263,13 @@ struct PalRoomView: View {
                 .interpolation(.none)
                 .frame(width: w, height: h)
 
+            // holiday decorations (drawn into the room, lit) go under everything that moves
+            RoomDecorationLayer(date: now, time: time, weather: weather, t: t)
+                .frame(width: w, height: h)
+
             PalRoomAmbience(time: time, weather: weather, t: t, palAsleep: asleep, lightColors: holidayLights)
                 .frame(width: w, height: h)
 
-            RoomDecorationLayer(date: now, time: time, weather: weather, t: t)
-                .frame(width: w, height: h)
 
             if asleep {
                 PalSleepLayer(time: time, weather: weather, t: t, scale: scale)

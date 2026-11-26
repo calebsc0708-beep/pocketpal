@@ -1,0 +1,16 @@
+{
+  "images": [
+    {
+      "filename": "deco_newyear_sunset_rain.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  },
+  "properties": {
+    "compression-type": "lossless",
+    "preserves-vector-representation": false
+  }
+}

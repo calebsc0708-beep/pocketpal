@@ -24,7 +24,6 @@ enum RoomDecorations {
         return out
     }
 
-    static let withGlow: Set<String> = ["deco_halloween", "deco_autumn", "deco_christmas", "deco_newyear", "deco_valentine"]
 
     typealias RGB = (Double, Double, Double)
     /// String-light colors for a holiday (must match tools/build_fx_fonts.py).
@@ -72,25 +71,32 @@ struct RoomDecorationLayer: View {
     let time: RoomTime
     let weather: RoomWeather
     var t: Double? = nil
+    /// The wide room (rectangle widget): its decorations are drawn for that room.
+    var wide: Bool = false
 
     var body: some View {
         GeometryReader { geo in
-            let s: CGFloat = geo.size.width / 256
+            let s: CGFloat = geo.size.width / (wide ? 344 : 256)
             let tint: Color = RoomLook.of(time, weather).palColor
-            let glowing: Bool = time != .day       // jack-o'-lanterns, tree lights etc. glow from sunset to sunrise
             ZStack(alignment: .topLeading) {
-                ForEach(RoomDecorations.names(for: date), id: \.self) { name in
-                    Image(name)
+                // Each holiday's decorations were drawn into the room itself (lit by its lamps and window,
+                // in perspective, glowing in the evening) for every time of day and weather — no tinting here.
+                ForEach(RoomDecorations.holidays(for: date), id: \.self) { h in
+                    let name = "deco\(wide ? "w" : "")_\(h)_\(time.rawValue)_\(weather.rawValue)"
+                    if let r = DecoFrames.rect[name] {           // trimmed to just the decorations
+                        Image(name)
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: r.width * s, height: r.height * s)
+                            .position(x: r.midX * s, y: r.midY * s)
+                    }
+                }
+                if RoomDecorations.names(for: date).contains("deco_frost") {   // frosty window (left 256 px)
+                    Image("deco_frost")
                         .resizable()
                         .interpolation(.none)
                         .colorMultiply(tint)
-                        .frame(width: geo.size.width, height: geo.size.height)
-                    if glowing && RoomDecorations.withGlow.contains(name) {
-                        Image(name + "_glow")
-                            .resizable()
-                            .interpolation(.none)
-                            .frame(width: geo.size.width, height: geo.size.height)
-                    }
+                        .frame(width: 256 * s, height: geo.size.height)
                 }
                 if let t, let set = RoomDecorations.balloons(for: date) {
                     ForEach(set.items, id: \.image) { b in

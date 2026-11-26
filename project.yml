@@ -56,6 +56,7 @@ targets:
       - Pal/PalRoomAmbience.swift
       - Pal/PalRoomView.swift
       - Pal/RoomDecorations.swift
+      - Pal/DecoFrames.swift
       - Pal/RoomLook.swift
       - Pal/WeatherSync.swift
       - Pal/PalSprites.xcassets
