@@ -170,7 +170,7 @@ def hop_font(species):
 # ---- walking between activities (must match Pal/PalActivity.swift) ----
 # id: (back, flip, perch, floor, size)
 ACTS = {
-    "window": (True, False, (86, 79), (86, 112), 30),
+    "window": (True, False, (84, 77), (84, 112), 30),
     "music": (False, True, (109, 117), (109, 117), 33),
     "fish": (True, False, (205, 99), (158, 124), 30),
     "rug0": (False, False, (96, 132), (96, 132), 34),

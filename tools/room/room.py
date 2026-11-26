@@ -216,7 +216,29 @@ for x0 in [wx0 - 5, wx0 + 21]: Rd(x0, 85, x0 + 20, FL - 3, SEAT_D, WOOD_D); Rd(x
 # pillows + folded blanket + book + mug on seat
 E([wx0 - 6, 66, wx0 + 10, 79], QUILT2); E([wx0 - 4, 68, wx0 + 6, 77], (246, 200, 130))
 E([wx1 - 10, 67, wx1 + 6, 79], SAGE); E([wx1 - 8, 69, wx1 + 2, 77], (146, 180, 140))
-block(wx0 + 18, 73, wx0 + 34, 76, 0.15, 0.4, BLANK, top=BLANK_L, side=BLANK_D); Ld([(wx0 + 18, 74.5), (wx0 + 34, 74.5)], 0.4, BLANK_D)   # folded blanket
+if not WIDE:
+    block(wx0 + 18, 73, wx0 + 34, 76, 0.15, 0.4, BLANK, top=BLANK_L, side=BLANK_D); Ld([(wx0 + 18, 74.5), (wx0 + 34, 74.5)], 0.4, BLANK_D)   # folded blanket
+else:
+    # the pal's own little round bed on the seat top: a padded rim seen from above, a soft cushion sunk inside
+    def pet_bed(cx, cy, rx, ry, h):
+        def inside(x, y, ecy, a, b): return ((x + .5 - cx) / a) ** 2 + ((y + .5 - ecy) / b) ** 2 <= 1
+        for y in range(int(cy - ry - h) - 1, int(cy + ry) + 2):
+            for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
+                top = inside(x, y, cy - h, rx, ry)
+                body = any(inside(x, y, cy - h + k, rx, ry) for k in range(h + 1))
+                if inside(x, y, cy - h + 0.7, rx - 3, ry - 1.5):          # cushion, shaded where the back rim overhangs
+                    back = not inside(x, y - 1, cy - h + 0.7, rx - 3, ry - 1.5)
+                    c = CREAM_D if back else ((250, 238, 214) if x < cx + 2 else CREAM)
+                elif top:                                                   # top of the padded rim, lit from the window side
+                    edge = not inside(x, y - 1, cy - h, rx, ry)
+                    c = (236, 146, 124) if edge else (BLANK_L if x < cx + rx * 0.5 else BLANK)
+                elif body:                                                  # the rim's rounded front
+                    bottom = not inside(x, y + 1, cy, rx, ry)
+                    c = BLANK_D if bottom or x > cx + rx * 0.6 else BLANK
+                else:
+                    continue
+                px(x, y, c)
+    pet_bed(84, 75.5, 10, 4, 3)
 block(wx0 + 36, 73, wx0 + 41, 76, 0.0, 0.1, CREAM_D, top=(196, 176, 150)); px(wx0 + 42, 74, CREAM_D); px(wx0 + 42, 75, CREAM_D)   # mug (the steam rises from x 100)                                  # mug
 px(wx0 + 38, 71, (200, 200, 210)); px(wx0 + 39, 70, (200, 200, 210))
 
@@ -564,10 +586,11 @@ elif S == "hide":                     # storm: hiding under the quilt
 
 # ---------- trainer's things (wide room): user-provided item sprites, at the room's own pixel scale ----------
 if WIDE:
-    # berries + fruit in a wooden bowl on the window seat, in front of the folded blanket
-    place("berry_blue", 3, 82, 77); place("fruit_yellow", 3, 88, 77); place("berry_orange", 3, 85, 76)
-    E([77, 75, 93, 80], (118, 82, 58)); E([78, 75, 92, 77], (156, 112, 78)); R(79, 78, 91, 78, (100, 68, 48))
-    place("berry_blue", 3, 81, 78); place("berry_orange", 3, 89, 78)
+    # berries + fruit in a small wooden bowl at the right end of the window seat, in front of the green pillow
+    bx = 109                                   # clear of the mug (its steam rises from x 100)
+    place("berry_blue", 3, bx - 3, 77); place("fruit_yellow", 3, bx + 2, 77); place("berry_orange", 3, bx, 76)
+    E([bx - 6, 75, bx + 6, 80], (118, 82, 58)); E([bx - 5, 75, bx + 5, 77], (156, 112, 78)); R(bx - 4, 78, bx + 4, 78, (100, 68, 48))
+    place("berry_blue", 3, bx - 3, 78); place("berry_orange", 3, bx + 3, 78)
     # potions lined up on the shelf above the desk
     for i, p in enumerate(("potion_purple", "potion_pink", "potion_orange")):
         place(p, 3, 159 + i * 6, 50)

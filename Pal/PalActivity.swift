@@ -27,7 +27,7 @@ struct PalActivity: Equatable {
     }
 
     static let window = PalActivity(name: "Looking out the window", back: true, flip: false,
-                                    perch: CGPoint(x: 86, y: 79), floor: CGPoint(x: 86, y: 112), size: 30)
+                                    perch: CGPoint(x: 84, y: 77), floor: CGPoint(x: 84, y: 112), size: 30)
     static let music = PalActivity(name: "Listening to music", back: false, flip: true,
                                    perch: CGPoint(x: 109, y: 117), floor: CGPoint(x: 109, y: 117), size: 33)
     static let fish = PalActivity(name: "Watching the fish", back: true, flip: false,

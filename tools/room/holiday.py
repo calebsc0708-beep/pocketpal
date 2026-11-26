@@ -244,8 +244,13 @@ class Draw:
                     x, y = self.wp(gx - 2 + c, gy + r, 0.25)
                     self.px(round(x), round(y), self.sh((245, 245, 250), 1.0 - 0.06 * r - (0.08 if c > 2 else 0)))
 
+    def seat(self):
+        # the window-seat spot: beside the blanket, or in the wide room (where the pal's bed sits there)
+        # at the left end, in front of the orange pillow
+        return (61, 78) if self.wide else (73, 76)
+
     def halloween_desk(self):
-        self.pumpkin(73, 76, 7, 6, True)                      # on the window seat, between the pillow and blanket
+        self.pumpkin(*self.seat(), 7, 6, True)                      # on the window seat, between the pillow and blanket
         x, y = self.wp(146, 78, 0.35)                         # on the desk, behind the chair's back
         self.pumpkin(x, y, 8, 6, True)
 
@@ -278,7 +283,7 @@ class Draw:
         self.stamp(["#.#", ".#.", "#.#"], cx - 1, cy + 8, {"#": (190, 60, 40)})
 
     def autumn_desk(self):
-        self.pumpkin(73, 76, 7, 5, False)
+        self.pumpkin(*self.seat(), 7, 5, False)
         x, y = self.wp(146, 78, 0.35)                         # pie on the desk
         x, y = round(x), round(y)
         self.E([x - 6, y - 3, x + 6, y + 1], (200, 150, 90)); self.E([x - 5, y - 4, x + 5, y - 1], (226, 176, 104))
@@ -362,7 +367,7 @@ class Draw:
         self.px(x, base - 9, self.GOLD)
 
     def newyear_desk(self):
-        self.party_hat(73, 76)                                # on the window seat
+        self.party_hat(*self.seat())                                # on the window seat
         x, y = self.wp(146, 78, 0.3); self.party_hat(x, y)    # on the desk
 
     def newyear_floor(self):
