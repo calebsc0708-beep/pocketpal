@@ -85,7 +85,7 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
             .init(name: "temperature_unit", value: Locale.current.measurementSystem == .us ? "fahrenheit" : "celsius"),
         ]
         guard let url = parts.url,
-              let (data, _) = try? await URLSession.shared.data(from: url),
+              let (data, _) = try? await URLSession.shared.data(for: URLRequest(url: url, timeoutInterval: 8)),
               let r = try? JSONDecoder().decode(Response.self, from: data) else { return nil }
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd'T'HH:mm"
@@ -96,8 +96,39 @@ final class WeatherSync: NSObject, ObservableObject, CLLocationManagerDelegate {
                         sunset: r.daily.sunset.first.flatMap { f.date(from: $0) })
     }
 
+    /// The weather shared by the app and all widgets (App Group). Only goes online when what's saved is
+    /// older than `maxAge` or from somewhere else, so several widgets refreshing together make one request.
+    nonisolated static func sharedSnapshot(lat: Double, lon: Double, maxAge: TimeInterval = 30 * 60) async -> Snapshot? {
+        if let c = cached(), Date().timeIntervalSince(c.fetched) < maxAge,
+           abs(c.lat - lat) < 0.1, abs(c.lon - lon) < 0.1 {
+            return c.snap
+        }
+        guard let snap = await fetchSnapshot(lat: lat, lon: lon) else { return cached()?.snap }   // offline: last known
+        save(snap, lat: lat, lon: lon)
+        return snap
+    }
+
+    private struct Cached: Codable {
+        let weather: String; let temperature: Double; let sunrise: Date?; let sunset: Date?
+        let fetched: Date; let lat: Double; let lon: Double
+    }
+    private nonisolated static let cacheKey = "weather.snapshot"
+
+    nonisolated static func save(_ s: Snapshot, lat: Double, lon: Double) {
+        let c = Cached(weather: s.weather.rawValue, temperature: s.temperature, sunrise: s.sunrise, sunset: s.sunset,
+                       fetched: Date(), lat: lat, lon: lon)
+        if let data = try? JSONEncoder().encode(c) { SharedPal.defaults?.set(data, forKey: cacheKey) }
+    }
+
+    private nonisolated static func cached() -> (snap: Snapshot, fetched: Date, lat: Double, lon: Double)? {
+        guard let data = SharedPal.defaults?.data(forKey: cacheKey),
+              let c = try? JSONDecoder().decode(Cached.self, from: data),
+              let w = RoomWeather(rawValue: c.weather) else { return nil }
+        return (Snapshot(weather: w, temperature: c.temperature, sunrise: c.sunrise, sunset: c.sunset), c.fetched, c.lat, c.lon)
+    }
+
     private func fetch(lat: Double, lon: Double) async {
-        guard let snap = await Self.fetchSnapshot(lat: lat, lon: lon) else { return }
+        guard let snap = await Self.sharedSnapshot(lat: lat, lon: lon, maxAge: 10 * 60) else { return }
         sunrise = snap.sunrise
         sunset = snap.sunset
         weather = snap.weather

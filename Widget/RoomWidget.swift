@@ -58,13 +58,16 @@ struct RoomProvider: AppIntentTimelineProvider {
         // Weather for your last known location (the app asks for location permission).
         var snap: WeatherSync.Snapshot? = nil
         if let loc = CLLocationManager().location {
-            snap = await WeatherSync.fetchSnapshot(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
+            snap = await WeatherSync.sharedSnapshot(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
         }
         let now = Date()
-        // A new picture every minute for the next 2 hours, so the wall clock stays right.
-        // Planned entries don't use up the widget's refresh budget; iOS asks again at the end.
-        let firstMinute = Calendar.current.dateInterval(of: .minute, for: now)?.end ?? now
-        let dates = [now] + (0..<120).map { firstMinute.addingTimeInterval(Double($0) * 60) }
+        // The wall clock updates itself (clock font + timer), so a new picture is only needed when something
+        // else changes: the activity (every 5 minutes) or, when hopping, the time of day (checked every 15).
+        // Entries sit on the clock's 5/15-minute marks, so midnight and noon (when the clock's timer
+        // restarts) always get one. Planned entries don't use the refresh budget; iOS asks again at the end.
+        let step: Double = configuration.motion == .activities ? 5 * 60 : 15 * 60
+        let firstMark = (now.timeIntervalSinceReferenceDate / step).rounded(.down) * step + step
+        let dates = [now] + (0..<Int(7200 / step)).map { Date(timeIntervalSinceReferenceDate: firstMark + Double($0) * step) }
         let entries = dates.map { date -> RoomEntry in
             return RoomEntry(date: date,
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
@@ -113,6 +116,35 @@ struct RoomWidgetView: View {
         .containerBackground(for: .widget) { Color.black }
     }
 
+    /// The room's LCD clock. A timer counting up from midnight (or noon) drawn with PokePal-clock, which turns
+    /// it into 12-hour "h:mm" — iOS updates it on its own, no new widget picture needed each minute.
+    @ViewBuilder
+    private func clock(scale s: CGFloat, night: Bool) -> some View {
+        if Sprites.hasFont("PokePal-clock", size: 8 * s) {
+            Text(Self.clockStart(for: entry.date), style: .timer)
+                .font(.custom("PokePal-clock", fixedSize: 8 * s))
+                .foregroundStyle(Color(red: 120 / 255, green: 240 / 255, blue: 160 / 255))
+                .environment(\.locale, Locale(identifier: "en_US_POSIX"))
+                .lineLimit(1)
+                .frame(width: 24 * s, height: 8 * s, alignment: .trailing)   // room x 210-234, y 46-54
+                .position(x: 222 * s, y: 50 * s)
+        } else {
+            PalRoomAmbience(time: entry.time, weather: entry.weather,
+                            t: entry.date.timeIntervalSinceReferenceDate, palAsleep: night,
+                            clock: entry.date, onlyClock: true)
+                .frame(width: 256 * s, height: 160 * s)
+        }
+    }
+
+    /// Afternoon: the timer starts at midnight (reads 12:00-23:59). Morning: at noon the day before
+    /// (reads 12:00-23:59 too). The font maps 13-23 to 1-11.
+    static func clockStart(for date: Date) -> Date {
+        let c = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
+        let h = c.hour ?? 0
+        let sinceMidnight = Double(h * 3600 + (c.minute ?? 0) * 60 + (c.second ?? 0))
+        return date.addingTimeInterval(-(sinceMidnight + (h < 12 ? 12 * 3600 : 0)))
+    }
+
     /// The rectangle (medium) widget uses the wider room: same left 256 px, plus a reading corner on the right.
     private var wide: Bool { family == .systemMedium }
     private var roomWidth: CGFloat { wide ? 344 : 256 }
@@ -156,11 +188,8 @@ struct RoomWidgetView: View {
                 .interpolation(.none)
                 .frame(width: roomWidth * s, height: 160 * s)
 
-            // the clock (it changes once a minute, with each timeline entry)
-            PalRoomAmbience(time: entry.time, weather: entry.weather,
-                            t: entry.date.timeIntervalSinceReferenceDate, palAsleep: night,
-                            clock: entry.date, onlyClock: true)
-                .frame(width: 256 * s, height: 160 * s)
+            // the clock: updates itself every minute (see clock(scale:))
+            clock(scale: s, night: night)
 
             // everything else that moves, once a second (clouds, rain/snow, notes, fish, candle, plant...)
             fxFont("PokePal-fx-\(entry.time.rawValue)-\(entry.weather.rawValue)", origin: .zero, side: 256, scale: s)

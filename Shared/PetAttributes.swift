@@ -119,8 +119,14 @@ enum Sprites {
 
     static func hasFont(_ fontName: String, size: CGFloat) -> Bool {
         _ = fontsRegistered
-        return UIFont(name: fontName, size: size) != nil
+        fontLock.lock(); defer { fontLock.unlock() }
+        if let known = knownFonts[fontName] { return known }
+        let found = UIFont(name: fontName, size: 12) != nil       // size doesn't matter for "is it there"
+        knownFonts[fontName] = found
+        return found
     }
+    private static var knownFonts: [String: Bool] = [:]
+    private static let fontLock = NSLock()
 }
 
 // MARK: - Drawing

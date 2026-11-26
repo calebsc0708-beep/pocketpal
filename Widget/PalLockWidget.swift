@@ -33,7 +33,7 @@ struct PalLockProvider: AppIntentTimelineProvider {
     func timeline(for configuration: PalLockIntent, in context: Context) async -> Timeline<PalLockEntry> {
         var snap: WeatherSync.Snapshot? = nil
         if let loc = CLLocationManager().location {
-            snap = await WeatherSync.fetchSnapshot(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
+            snap = await WeatherSync.sharedSnapshot(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude)
         }
         let now = Date()
         // every 15 minutes for 2 hours (day/night can change), then ask again
