@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 import numpy as np, math, random
 
 import sys
@@ -177,10 +177,12 @@ if WEATHER == "snow":
     R(wx0, wy1 - 2, wx1, wy1, (246, 248, 255) if not NIGHT else (170, 180, 210), True)
 R((wx0 + wx1) // 2, wy0 - 11, (wx0 + wx1) // 2 + 1, wy1, WOOD)
 R(wx0, 48, wx1, 49, WOOD)
+_snap_precurtain = img.copy()
 # curtains
 for cx, side in [(wx0 - 8, 1), (wx1 + 2, -1)]:
     P([(cx, wy0 - 14), (cx + 8, wy0 - 14), (cx + 7 + side * 2, wy1 + 4), (cx - 1, wy1 + 6)], SAGE)
     for k in range(2, 8, 3): d.line([(cx + k, wy0 - 13), (cx + k + side, wy1 + 4)], fill=SAGE_D)
+_snap_postcurtain = img.copy()
 block(wx0 - 12, wy0 - 16, wx1 + 12, wy0 - 15, 0, 0.15, WOOD_D, bottom=(84, 52, 36))
 for ex in (wx0 - 13, wx1 + 12): block(ex, wy0 - 17, ex + 1, wy0 - 14, 0.1, 0.16, WOOD, side=WOOD_D)
 # window seat
@@ -600,11 +602,28 @@ if bulbs_on:
 WIN = {"sunrise": (1.0, 0.70, 0.60), "day": (1.0, 0.96, 0.85), "sunset": (1.0, 0.58, 0.32), "night": (0.45, 0.55, 0.85)}[TIME]
 wk = {"clear": 1.0, "cloudy": .55, "rain": .4, "storm": .3, "snow": .6}[WEATHER]
 if WEATHER != "clear": WIN = tuple(0.6 * c + 0.4 * 0.8 for c in WIN)
-add(85, 50, 70, WIN, (0.35 if NIGHT else 0.45) * wk)
+# light from the window: only what comes through the open glass, falling down onto the window seat and
+# the wall right around the frame. The curtains block it (it doesn't shine through them), and it doesn't
+# reach across to the desk.
+curtains = (np.asarray(_snap_postcurtain).astype(int) != np.asarray(_snap_precurtain).astype(int)).any(2)
+curtains &= (np.asarray(img).astype(int)[..., :3] == np.asarray(_snap_postcurtain).astype(int)[..., :3]).all(2)   # only where still visible (not under the pillows)
+wl = Image.new("L", (W, H), 0)
+ImageDraw.Draw(wl).polygon([(wx0 + 2, wy0 - 12), (wx1 - 2, wy0 - 12), (wx1 + 16, FL + 2), (wx0 - 16, FL + 2)], fill=255)
+wl = wl.filter(ImageFilter.GaussianBlur(9))        # wide, soft spread: nothing on the seat gets cut in half
+wla = np.asarray(wl).astype(np.float32) / 255
+wla *= np.clip(1.0 - (yy - wy0) / (FL - wy0) * 0.55, 0.3, 1.0)        # strongest by the glass
+wla *= ~curtains
+light += wla[..., None] * np.array(WIN) * (0.42 if NIGHT else 0.5) * wk
 patch = {"sunrise": [(70, FL + 4), (112, FL + 4), (150, 150), (88, 150)], "day": [(64, FL + 4), (108, FL + 4), (124, 150), (54, 150)],
          "sunset": [(60, FL + 4), (102, FL + 4), (64, 150), (10, 150)], "night": [(64, FL + 4), (108, FL + 4), (124, 150), (54, 150)]}[TIME]
+# the pool of window light on the floor: starts just in front of the window seat, soft-edged like real
+# light, and only on the floor/rug (furniture and things standing in it aren't painted with it)
+seat_front = round(wp(0, FL, SEAT_D + 0.05)[1])
+patch = [(x, max(y, seat_front)) for x, y in patch]
 mp = Image.new("L", (W, H), 0); ImageDraw.Draw(mp).polygon(patch, fill=int(70 * wk))
+mp = mp.filter(ImageFilter.GaussianBlur(4))
 mpa = np.asarray(mp).astype(np.float32)[..., None] / 255
+mpa = mpa * (~objs)[..., None]
 light += mpa * np.array(WIN)
 if WEATHER == "storm": light += np.array([0.04, 0.05, 0.10])
 sh = np.asarray(shadow).astype(np.float32)[..., None] / 255

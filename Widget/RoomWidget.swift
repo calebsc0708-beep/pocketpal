@@ -131,6 +131,8 @@ struct RoomWidgetView: View {
                 .foregroundStyle(Color(red: 120 / 255, green: 240 / 255, blue: 160 / 255))
                 .environment(\.locale, Locale(identifier: "en_US_POSIX"))
                 .lineLimit(1)
+                // a timer text fills its whole frame and lines up left unless told otherwise
+                .multilineTextAlignment(.trailing)
                 .frame(width: 24 * s, height: 8 * s, alignment: .trailing)   // room x 210-234, y 46-54
                 .position(x: 222 * s, y: 50 * s)
         } else {
