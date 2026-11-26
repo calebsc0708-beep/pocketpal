@@ -17,6 +17,15 @@ struct PalActivity: Equatable {
 
     var isUp: Bool { perch != floor }
 
+    /// Short name used by the widget's walking fonts (tools/build_room_fonts.py: ACTS / WALKS).
+    var id: String {
+        if self == .window { return "window" }
+        if self == .music { return "music" }
+        if self == .fish { return "fish" }
+        if let i = Self.rug.firstIndex(of: self) { return "rug\(i)" }
+        return "rug0"
+    }
+
     static let window = PalActivity(name: "Looking out the window", back: true, flip: false,
                                     perch: CGPoint(x: 86, y: 79), floor: CGPoint(x: 86, y: 112), size: 30)
     static let music = PalActivity(name: "Listening to music", back: false, flip: true,

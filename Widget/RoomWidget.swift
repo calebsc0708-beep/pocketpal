@@ -247,7 +247,29 @@ struct RoomWidgetView: View {
                 activityPal(species, PalActivity.forSlot(entry.slot), scale: s)
             }
         case .activities:
-            activityPal(species, PalActivity.forSlot(entry.slot), scale: s)
+            walkingPal(species, scale: s)
+        }
+    }
+
+    /// Activities mode: at each 5-minute mark the pal walks over from its last activity (jumping down from
+    /// / up onto furniture), then carries on with its idle loop there. One font per move; its timer counts
+    /// from the mark, the first minute plays the walk, after that it's the idle loop — no extra refreshes.
+    @ViewBuilder
+    private func walkingPal(_ species: PalSpecies, scale s: CGFloat) -> some View {
+        let act = PalActivity.forSlot(entry.slot)
+        let from = PalActivity.forSlot(entry.slot - 1)
+        let font = "PokePal-\(species.rawValue)-walk-\(from.id)-\(act.id)"
+        let side: CGFloat = 256 * s
+        if Sprites.hasFont(font, size: side) {
+            Text(Date(timeIntervalSinceReferenceDate: Double(entry.slot) * 300), style: .timer)
+                .font(.custom(font, fixedSize: side))
+                .environment(\.locale, Locale(identifier: "en_US_POSIX"))
+                .lineLimit(1)
+                .frame(width: side, height: side, alignment: .topLeading)
+                .colorMultiply(RoomLook.of(entry.time, entry.weather).palColor)
+                .position(x: side / 2, y: side / 2)
+        } else {
+            activityPal(species, act, scale: s)
         }
     }
 

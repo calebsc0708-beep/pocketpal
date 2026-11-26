@@ -167,6 +167,138 @@ def hop_font(species):
     return build_font(f"PokePal-{species}-hop", strikes, OUT / f"PokePal-{species}-hop.ttf")
 
 
+# ---- walking between activities (must match Pal/PalActivity.swift) ----
+# id: (back, flip, perch, floor, size)
+ACTS = {
+    "window": (True, False, (86, 79), (86, 112), 30),
+    "music": (False, True, (109, 117), (109, 117), 33),
+    "fish": (True, False, (205, 99), (158, 124), 30),
+    "rug0": (False, False, (96, 132), (96, 132), 34),
+    "rug1": (False, True, (122, 128), (122, 128), 34),
+    "rug2": (False, False, (78, 126), (78, 126), 34),
+}
+# the activity cycle is window -> rug -> music -> fish -> window, so these are all the moves there are
+WALKS = [("window", "rug0"), ("window", "rug1"), ("window", "rug2"), ("rug0", "music"), ("rug1", "music"),
+         ("rug2", "music"), ("music", "fish"), ("fish", "window")]
+WALK_SPEED = 11          # room px per second on the floor
+FLOOR_SIZE = 33          # canvas size (room px) while walking on the floor
+
+
+def walk_path(a, b):
+    """Positions (x, y, size, moving_dx, moving_dy) for each second of the walk, start to arrival."""
+    _, _, pa, fa, sa = ACTS[a]
+    _, _, pb, fb, sb = ACTS[b]
+    pts = []   # waypoints: (x, y, size, kind)
+    pts.append((*pa, sa, "start"))
+    if pa != fa: pts.append((*fa, FLOOR_SIZE, "jump"))       # hop down from the perch
+    pts.append((*fb, FLOOR_SIZE, "walk"))
+    if pb != fb: pts.append((*pb, sb, "jump"))               # hop up onto the next perch
+    else: pts[-1] = (*pb, sb, "walk")
+    out = [(pa[0], pa[1], sa, 0.0, 0.0)]                     # one beat where it was, so it starts from there
+    for (x0, y0, s0, _), (x1, y1, s1, kind) in zip(pts, pts[1:]):
+        dist = math.hypot(x1 - x0, y1 - y0)
+        n = 2 if kind == "jump" else max(1, math.ceil(dist / WALK_SPEED))
+        for k in range(1, n + 1):
+            f = k / n
+            lift = math.sin(f * math.pi) * (10 if kind == "jump" else 0)
+            out.append((x0 + (x1 - x0) * f, y0 + (y1 - y0) * f - lift, s0 + (s1 - s0) * f, x1 - x0, y1 - y0))
+    return out
+
+
+def pal_glyph(img, x, y, size, m, flip):
+    """The pal's 68 px canvas drawn `size` room px tall with its feet at (x, y), in an em of 256 room px.
+    Returns (png bytes, offset) — the picture is just the pal, placed with the sbix origin offset."""
+    if flip: img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    side = max(1, round(size * img.width / 68 * m))
+    pic = img.resize((side, side), Image.NEAREST)
+    bb = pic.getbbox() or (0, 0, 1, 1)
+    left = round(x * m - side / 2); top = round(y * m - side)
+    pic = pic.crop(bb)
+    ox = left + bb[0]; bottom = top + bb[3]
+    return png(pic), (ox, 256 * m - bottom)
+
+
+def walk_font(species, a, b):
+    """60 seconds after the 5-minute mark: the walk from activity a to b, then b's idle loop.
+    After the first minute the font shows b's idle loop (same frame as the idle font: seconds mod 10)."""
+    from fontTools.fontBuilder import FontBuilder
+    from fontTools.ttLib import newTable
+    from fontTools.ttLib.tables.sbixStrike import Strike
+    from fontTools.ttLib.tables.sbixGlyph import Glyph as SbixGlyph
+    path = walk_path(a, b)
+    assert len(path) < 50, (a, b, len(path))
+    loops = {c: sum(f["ms"] for f in FRAMES[species][c]["frames"]) for c in ("front", "back")}
+    def pose(clip, k):   # idle frame k of 10, like the idle fonts
+        return frame_image(frame_at(species, clip, k * loops[clip] / 10))
+    bback, bflip, bperch, _, bsize = ACTS[b]
+    glyphs = {}          # name -> {m: (png, offset)}
+    for s, (x, y, size, dx, dy) in enumerate(path):
+        back = dy < 0 and abs(dy) >= abs(dx) * 0.25          # walking away from you: show the back
+        clip = "back" if back else "front"
+        art_faces_right = back                               # front art faces left, back art faces right
+        if s == 0:                                           # still doing the old activity: same pose as before
+            aback, aflip = ACTS[a][0], ACTS[a][1]
+            clip, flip = ("back" if aback else "front"), aflip
+        else:
+            flip = (dx > 0) != art_faces_right if abs(dx) > 0.5 else False
+        glyphs[f"w{s:02d}"] = {m: pal_glyph(pose(clip, s % 10), x, y, size, m, flip) for m in (2, 4)}
+    for k in range(10):
+        glyphs[f"i{k}"] = {m: pal_glyph(pose("back" if bback else "front", k), bperch[0], bperch[1], bsize, m, bflip)
+                           for m in (2, 4)}
+    W = len(path)
+    names = list(glyphs)
+    glyph_order = list(EMPTY.keys()) + DIGITS + ["zw"] + names
+    fb = FontBuilder(UPM, isTTF=True)
+    fb.setupGlyphOrder(glyph_order)
+    cmap = {ord(ch): g for g, ch in EMPTY.items() if ch}
+    cmap.update({ord(str(i)): g for i, g in enumerate(DIGITS)})
+    fb.setupCharacterMap(cmap)
+    empty = TTGlyphPen(None).glyph()
+    fb.setupGlyf({g: empty for g in glyph_order})
+    zero_width = set(SEPARATORS) | {"zw"} | set(DIGITS)
+    fb.setupHorizontalMetrics({g: (0 if g in zero_width else UPM, 0) for g in glyph_order})
+    fb.setupHorizontalHeader(ascent=UPM, descent=0, lineGap=0)
+    name = f"PokePal-{species}-walk-{a}-{b}"
+    fb.setupNameTable({"familyName": name.replace("-", " "), "styleName": "Regular", "fullName": name.replace("-", " "),
+                       "psName": name, "uniqueFontIdentifier": name})
+    fb.setupOS2(sTypoAscender=UPM, sTypoDescender=0, sTypoLineGap=0, usWinAscent=UPM, usWinDescent=0,
+                sxHeight=UPM // 2, sCapHeight=UPM, fsType=0)
+    fb.setupPost()
+    sbix = newTable("sbix"); sbix.version = 1; sbix.flags = 1
+    for m in (2, 4):
+        strike = Strike(ppem=256 * m, resolution=72)
+        for g in names:
+            data, (ox, oy) = glyphs[g][m]
+            strike.glyphs[g] = SbixGlyph(glyphName=g, graphicType="png ", imageData=data, originOffsetX=ox, originOffsetY=oy)
+        sbix.strikes[256 * m] = strike
+    fb.font["sbix"] = sbix
+    # The timer counts from the 5-minute mark: "0:SS" in the first minute, "M:SS" after.
+    D = DIGITS
+    rules = []
+    for t in range(60):                                      # first minute: walk, then idle at b
+        g = f"w{t:02d}" if t < W else f"i{t % 10}"
+        rules.append(f"    sub {D[0]} colon {D[t // 10]} {D[t % 10]} by {g};")
+    for mnt in range(1, 10):                                 # after that: idle at b (seconds mod 10)
+        for t in range(60):
+            rules.append(f"    sub {D[mnt]} colon {D[t // 10]} {D[t % 10]} by i{t % 10};")
+    fea = f"""
+languagesystem DFLT dflt;
+languagesystem latn dflt;
+@ANY = [{" ".join(DIGITS + SEPARATORS)}];
+lookup KeepLastFour {{
+    sub @ANY' @ANY @ANY @ANY @ANY by zw;
+}} KeepLastFour;
+lookup Pick {{
+{chr(10).join(rules)}
+}} Pick;
+feature ccmp {{ lookup KeepLastFour; lookup Pick; }} ccmp;
+feature calt {{ lookup KeepLastFour; lookup Pick; }} calt;
+"""
+    addOpenTypeFeaturesFromString(fb.font, fea)
+    fb.save(str(OUT / f"{name}.ttf"))
+    return f"{name}.ttf", W
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     files = []
@@ -174,7 +306,10 @@ def main():
         files.append(idle_font(species, "front"))
         files.append(idle_font(species, "back"))
         files.append(hop_font(species))
-        print(f"  {species}: idle, back + hop fonts")
+        secs = []
+        for a, b in WALKS:
+            f, w = walk_font(species, a, b); files.append(f); secs.append(w)
+        print(f"  {species}: idle, back, hop + {len(WALKS)} walks ({min(secs)}-{max(secs)} s)")
     plist = plistlib.loads(PLIST.read_bytes()) if PLIST.exists() else {}
     fonts = plist.get("UIAppFonts", [])
     fonts += [f"Fonts/{f}" for f in files if f"Fonts/{f}" not in fonts]

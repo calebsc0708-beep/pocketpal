@@ -97,8 +97,9 @@ def main():
     if PLIST.exists():
         plist = plistlib.loads(PLIST.read_bytes())
         fonts = plist.get("UIAppFonts", [])
-        if path.name not in fonts:
-            fonts.append(path.name)
+        entry = f"Fonts/{path.name}"
+        if entry not in fonts:
+            fonts.append(entry)
         plist["UIAppFonts"] = fonts
         PLIST.write_bytes(plistlib.dumps(plist))
     print(f"{path.name}: {path.stat().st_size} bytes")
