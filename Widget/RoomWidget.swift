@@ -139,10 +139,13 @@ struct RoomWidgetView: View {
     /// Afternoon: the timer starts at midnight (reads 12:00-23:59). Morning: at noon the day before
     /// (reads 12:00-23:59 too). The font maps 13-23 to 1-11.
     static func clockStart(for date: Date) -> Date {
-        let c = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
-        let h = c.hour ?? 0
-        let sinceMidnight = Double(h * 3600 + (c.minute ?? 0) * 60 + (c.second ?? 0))
-        return date.addingTimeInterval(-(sinceMidnight + (h < 12 ? 12 * 3600 : 0)))
+        let c: DateComponents = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
+        let h: Int = c.hour ?? 0
+        let m: Int = c.minute ?? 0
+        let sec: Int = c.second ?? 0
+        let sinceMidnight: Int = h * 3600 + m * 60 + sec
+        let shift: Int = h < 12 ? 43_200 : 0
+        return date.addingTimeInterval(-Double(sinceMidnight + shift))
     }
 
     /// The rectangle (medium) widget uses the wider room: same left 256 px, plus a reading corner on the right.
