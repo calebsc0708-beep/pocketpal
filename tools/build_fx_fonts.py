@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "fx"))
 sys.path.insert(0, str(ROOT / "tools"))
 import ambience                                   # noqa: E402  (Python copy of PalRoomAmbience)
-from build_room_fonts import build_font, OUT, PLIST   # noqa: E402
+from build_room_fonts import build_font, OUT, PLIST, UPM, DIGITS, EMPTY, SEPARATORS   # noqa: E402
 
 import plistlib                                   # noqa: E402
 
@@ -48,7 +48,23 @@ WIDE_BULBS = [(x, 14 + 3 + int(5 * abs(math.sin((x - 44) / 42 * math.pi))) + 1) 
 
 
 def png(img):
-    b = io.BytesIO(); img.save(b, "PNG", optimize=True); return b.getvalue()
+    """PNG bytes. Pixel art rarely has more than 256 colours, so store it with a palette when it fits:
+    exactly the same pixels, a fraction of the size."""
+    import numpy as np
+    img = img.convert("RGBA")
+    a = np.asarray(img)
+    packed = np.ascontiguousarray(a).view(np.uint32).reshape(-1)        # one number per pixel: fast to sort
+    packed = np.where(a[..., 3].reshape(-1) == 0, 0, packed)           # all fully clear pixels are the same colour
+    uniq, idx = np.unique(packed, return_inverse=True)
+    cols = uniq.view(np.uint8).reshape(-1, 4)
+    b = io.BytesIO()
+    if len(cols) <= 256:
+        p = Image.fromarray(idx.reshape(a.shape[:2]).astype(np.uint8), "P")
+        p.putpalette(cols[:, :3].astype(np.uint8).flatten().tolist())
+        p.save(b, "PNG", optimize=True, transparency=bytes(cols[:, 3].astype(np.uint8).tolist()))
+    else:
+        img.save(b, "PNG", optimize=True)
+    return b.getvalue()
 
 
 def asset(name):
@@ -64,6 +80,63 @@ def upscale_square(overlay, side, origin, scales):
 
 FRONT = np.asarray(Image.open(Path(__file__).parent / "fx" / "front_mask.png").convert("L")) > 0
 
+FX_FRAMES = 60   # the room effects loop over a whole minute (every motion fits it exactly: ambience.LOOP)
+
+
+def build_font60(ps_name, strikes, out_path, offsets=None):
+    """Like build_font, but picks one of 60 pictures from the timer's last TWO digits (its seconds, 00-59).
+    strikes: {ppem: [60 PNG byte strings]}; offsets: {ppem: (x, y)} where each picture sits (px from the
+    glyph's bottom-left), so pictures can be just the part of the square that moves."""
+    from fontTools.fontBuilder import FontBuilder
+    from fontTools.pens.ttGlyphPen import TTGlyphPen
+    from fontTools.ttLib import newTable
+    from fontTools.ttLib.tables.sbixStrike import Strike
+    from fontTools.ttLib.tables.sbixGlyph import Glyph as SbixGlyph
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    frames = [f"f{n:02d}" for n in range(60)]
+    glyph_order = list(EMPTY.keys()) + DIGITS + ["zw"] + frames
+    fb = FontBuilder(UPM, isTTF=True)
+    fb.setupGlyphOrder(glyph_order)
+    cmap = {ord(ch): g for g, ch in EMPTY.items() if ch}
+    cmap.update({ord(str(i)): g for i, g in enumerate(DIGITS)})
+    fb.setupCharacterMap(cmap)
+    empty = TTGlyphPen(None).glyph()
+    fb.setupGlyf({g: empty for g in glyph_order})
+    zero_width = set(SEPARATORS) | {"zw"} | set(DIGITS)
+    fb.setupHorizontalMetrics({g: (0 if g in zero_width else UPM, 0) for g in glyph_order})
+    fb.setupHorizontalHeader(ascent=UPM, descent=0, lineGap=0)
+    fb.setupNameTable({"familyName": ps_name.replace("-", " "), "styleName": "Regular",
+                       "fullName": ps_name.replace("-", " "), "psName": ps_name, "uniqueFontIdentifier": ps_name})
+    fb.setupOS2(sTypoAscender=UPM, sTypoDescender=0, sTypoLineGap=0, usWinAscent=UPM,
+                usWinDescent=0, sxHeight=UPM // 2, sCapHeight=UPM, fsType=0)
+    fb.setupPost()
+    sbix = newTable("sbix"); sbix.version = 1; sbix.flags = 1
+    for ppem, images in strikes.items():
+        strike = Strike(ppem=ppem, resolution=72)
+        for n, gname in enumerate(frames):
+            ox, oy = (offsets or {}).get(ppem, (0, 0))
+            strike.glyphs[gname] = SbixGlyph(glyphName=gname, graphicType="png ", imageData=images[n],
+                                             originOffsetX=ox, originOffsetY=oy)
+        sbix.strikes[ppem] = strike
+    fb.font["sbix"] = sbix
+    ligs = "\n".join(f"    sub {DIGITS[a]} {DIGITS[b]} by f{a}{b};" for a in range(6) for b in range(10))
+    fea = f"""
+languagesystem DFLT dflt;
+languagesystem latn dflt;
+@ANY = [{" ".join(DIGITS + SEPARATORS)}];
+lookup HideAllButLastTwo {{
+    sub @ANY' @ANY @ANY by zw;
+}} HideAllButLastTwo;
+lookup Seconds {{
+{ligs}
+}} Seconds;
+feature ccmp {{ lookup HideAllButLastTwo; lookup Seconds; }} ccmp;
+feature calt {{ lookup HideAllButLastTwo; lookup Seconds; }} calt;
+"""
+    addOpenTypeFeaturesFromString(fb.font, fea)
+    fb.save(str(out_path))
+    return out_path.name
+
 
 def room_fx(time, weather):
     base = asset(f"room_{time}_{weather}")
@@ -71,7 +144,7 @@ def room_fx(time, weather):
     saved = ambience.lights_on
     ambience.lights_on = lambda a, b: False                   # lights have their own font
     frames = []
-    for d in range(10):
+    for d in range(FX_FRAMES):
         f = ambience.draw2(base, float(d), time, weather, info, clock=None)
         a, b = np.asarray(f).astype(np.int16), np.asarray(base).astype(np.int16)
         changed = np.abs(a[..., :3] - b[..., :3]).max(axis=2) > 0
@@ -81,12 +154,22 @@ def room_fx(time, weather):
         ov[changed, 3] = 255
         frames.append(Image.fromarray(ov))
     ambience.lights_on = saved
-    strikes = {}
+    # only keep the part of the room that ever changes (window, desk, tank, plant...): smaller pictures
+    # to store and, more importantly, to decode every second on the Home Screen
+    union = np.zeros((160, 256), bool)
     for img in frames:
-        for ppem, im in upscale_square(img, 256, (0, 0), (2, 4)).items():
-            strikes.setdefault(ppem, []).append(png(im))
+        union |= np.asarray(img)[..., 3] > 0
+    ys, xs = np.nonzero(union)
+    x0, y0, x1, y1 = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1) if len(xs) else (0, 0, 1, 1)
+    strikes, offsets = {}, {}
+    for img in frames:
+        part = img.crop((x0, y0, x1, y1))
+        for m in (2, 4):
+            ppem = 256 * m
+            strikes.setdefault(ppem, []).append(png(part.resize(((x1 - x0) * m, (y1 - y0) * m), Image.NEAREST)))
+            offsets[ppem] = (x0 * m, (256 - y1) * m)          # picture's bottom-left, up from the square's bottom
     name = f"PokePal-fx-{time}-{weather}"
-    return build_font(name, strikes, OUT / f"{name}.ttf")
+    return build_font60(name, strikes, OUT / f"{name}.ttf", offsets)
 
 
 def lights(palette_name, strip=False):

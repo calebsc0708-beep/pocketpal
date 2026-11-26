@@ -109,7 +109,23 @@ def build_font(ps_name, strikes, out_path):
 
 
 def png(img):
-    b = io.BytesIO(); img.save(b, "PNG", optimize=True); return b.getvalue()
+    """PNG bytes. Pixel art rarely has more than 256 colours, so store it with a palette when it fits:
+    exactly the same pixels, a fraction of the size."""
+    import numpy as np
+    img = img.convert("RGBA")
+    a = np.asarray(img)
+    packed = np.ascontiguousarray(a).view(np.uint32).reshape(-1)        # one number per pixel: fast to sort
+    packed = np.where(a[..., 3].reshape(-1) == 0, 0, packed)           # all fully clear pixels are the same colour
+    uniq, idx = np.unique(packed, return_inverse=True)
+    cols = uniq.view(np.uint8).reshape(-1, 4)
+    b = io.BytesIO()
+    if len(cols) <= 256:
+        p = Image.fromarray(idx.reshape(a.shape[:2]).astype(np.uint8), "P")
+        p.putpalette(cols[:, :3].astype(np.uint8).flatten().tolist())
+        p.save(b, "PNG", optimize=True, transparency=bytes(cols[:, 3].astype(np.uint8).tolist()))
+    else:
+        img.save(b, "PNG", optimize=True)
+    return b.getvalue()
 
 
 def idle_font(species, clip="front"):

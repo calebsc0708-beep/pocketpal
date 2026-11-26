@@ -51,7 +51,7 @@ struct RoomProvider: AppIntentTimelineProvider {
     func snapshot(for configuration: RoomWidgetIntent, in context: Context) async -> RoomEntry {
         let now = Date()
         return RoomEntry(date: now, time: WeatherSync.clockTime(now, sunrise: nil, sunset: nil), weather: .clear,
-                         pal: Self.pal(configuration.palOverride), motion: configuration.motion, slot: Self.slot(now), timerStart: now)
+                         pal: Self.pal(configuration.palOverride), motion: configuration.motion, slot: Self.slot(now), timerStart: Self.animationStart(now))
     }
 
     func timeline(for configuration: RoomWidgetIntent, in context: Context) async -> Timeline<RoomEntry> {
@@ -73,10 +73,15 @@ struct RoomProvider: AppIntentTimelineProvider {
                              time: WeatherSync.clockTime(date, sunrise: snap?.sunrise, sunset: snap?.sunset),
                              weather: snap?.weather ?? .clear,
                              pal: Self.pal(configuration.palOverride), motion: configuration.motion,
-                             slot: Self.slot(date), timerStart: now)
+                             slot: Self.slot(date), timerStart: Self.animationStart(date))
         }
         return Timeline(entries: entries, policy: .atEnd)
     }
+
+    /// Where the once-a-second animations count from: midnight. Their frame then follows the real clock's
+    /// seconds, so nothing jumps when iOS asks for a new timeline (a timer starting "now" would restart
+    /// every animation at frame 0).
+    static func animationStart(_ date: Date) -> Date { Calendar.current.startOfDay(for: date) }
 
     /// 5-minute slots on the clock, so the activity changes at :00, :05, :10...
     static func slot(_ date: Date) -> Int { Int(date.timeIntervalSinceReferenceDate / 300) }

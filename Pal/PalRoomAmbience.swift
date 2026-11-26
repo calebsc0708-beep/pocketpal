@@ -52,7 +52,7 @@ struct PalRoomAmbience: View {
                 for i in 0..<look.clouds {
                     let cy = 18 + (rnd(i, 21) * (ymax - 18)).rounded(.down)
                     let sp = (1.2 + rnd(i, 22) * 1.8) * (weather == .storm ? 2.2 : 1)
-                    let cx = 42 + (rnd(i, 23) * 87 + t * sp).truncatingRemainder(dividingBy: 87).rounded(.down)
+                    let cx = 42 + (rnd(i, 23) * 87 + t * Self.qs(sp, 87)).truncatingRemainder(dividingBy: 87).rounded(.down)
                     for px in Self.cloudShapes[i % Self.cloudShapes.count] {
                         let x = cx + px.dx, y = cy + px.dy
                         guard y < Self.treeLine(Int(x)) else { continue }
@@ -75,21 +75,21 @@ struct PalRoomAmbience: View {
                     let n = storm ? 60 : 40, speed = storm ? 110.0 : 80.0
                     for i in 0..<n {
                         let x = 62 + (rnd(i, 1) * 47).rounded(.down)
-                        let y = 14 + (t * speed * (0.8 + 0.4 * rnd(i, 2)) + rnd(i, 3) * 60).truncatingRemainder(dividingBy: 62).rounded(.down)
+                        let y = 14 + (t * Self.qs(speed * (0.8 + 0.4 * rnd(i, 2)), 62) + rnd(i, 3) * 60).truncatingRemainder(dividingBy: 62).rounded(.down)
                         for k in 0..<3 { wdot(x - (storm ? Double(k / 2) : 0), y + Double(k), (190, 205, 235), 0.75) }
                     }
                 }
                 if weather == .snow {
                     for i in 0..<36 {
                         let sp = 7 + 7 * rnd(i, 4)
-                        let y = 14 + (t * sp + rnd(i, 5) * 62).truncatingRemainder(dividingBy: 62)
-                        let x = 62 + rnd(i, 6) * 47 + sin(t * 1.3 + Double(i)) * 2
+                        let y = 14 + (t * Self.qs(sp, 62) + rnd(i, 5) * 62).truncatingRemainder(dividingBy: 62)
+                        let x = 62 + rnd(i, 6) * 47 + sin(t * Self.qf(1.3) + Double(i)) * 2
                         wdot(x, y, (255, 255, 255), 0.95)
                     }
                 }
                 if time == .night && weather == .clear {
                     for i in 0..<10 {
-                        let a = 0.5 + 0.5 * sin(t * (1.5 + rnd(i, 9) * 2) + Double(i) * 2)
+                        let a = 0.5 + 0.5 * sin(t * Self.qf(1.5 + rnd(i, 9) * 2) + Double(i) * 2)
                         wdot(65 + (rnd(i, 7) * 41).rounded(.down), 20 + (rnd(i, 8) * 26).rounded(.down), (255, 255, 230), a)
                     }
                 }
@@ -105,9 +105,11 @@ struct PalRoomAmbience: View {
             if weather == .clear && time != .night {
                 for i in 0..<14 {
                     let bx = 66 + rnd(i, 10) * 56, by = 60 + rnd(i, 11) * 80
-                    let y = by - (t * 2.5 + rnd(i, 12) * 30).truncatingRemainder(dividingBy: 30)
-                    let x = bx + sin(t * 0.4 + Double(i)) * 3
-                    dot(x, y, (255, 245, 210), 0.25 + 0.35 * (0.5 + 0.5 * sin(t * 2 + Double(i))))
+                    let rise = (t * Self.qs(2.5, 30) + rnd(i, 12) * 30).truncatingRemainder(dividingBy: 30)
+                    let y = by - rise
+                    let x = bx + sin(t * Self.qf(0.4) + Double(i)) * 3
+                    let a = (0.25 + 0.35 * (0.5 + 0.5 * sin(t * Self.qf(2) + Double(i)))) * Self.fade(rise / 30)
+                    dot(x, y, (255, 245, 210), a)
                 }
             }
 
@@ -132,7 +134,7 @@ struct PalRoomAmbience: View {
 
             // ---- candle flicker (night) ----
             if time == .night {
-                let f = 0.5 + 0.25 * sin(t * 13) + 0.25 * sin(t * 7.3 + 1)
+                let f = 0.5 + 0.25 * sin(t * Self.qf(13)) + 0.25 * sin(t * Self.qf(7.3) + 1)
                 for dx in -7...7 {
                     for dy in -7...7 {
                         let r = hypot(Double(dx), Double(dy))
@@ -140,7 +142,7 @@ struct PalRoomAmbience: View {
                     }
                 }
                 dot(156, 71, (255, 180, 80), 1); dot(156, 70, (255, 235, 170), 1)
-                if f > 0.55 { dot(156 + (sin(t * 5) > 0.6 ? 1 : 0), 69, (255, 220, 140), 0.9) }
+                if f > 0.55 { dot(156 + (sin(t * Self.qf(5)) > 0.6 ? 1 : 0), 69, (255, 220, 140), 0.9) }
             }
 
             // ---- record player: spinning platter + floating notes ----
@@ -151,7 +153,7 @@ struct PalRoomAmbience: View {
                 if !Self.chairCoversRecord.contains(Int(rx) * 1000 + Int(ry)) { dot(rx, ry, (120, 110, 130), 1) }
                 let colors: [(Double, Double, Double)] = [(140, 220, 210), (250, 210, 120), (240, 150, 170)]
                 for i in 0..<4 {
-                    let p = (t / 3.2 + Double(i) / 4).truncatingRemainder(dividingBy: 1)
+                    let p = (t / Self.qp(3.2) + Double(i) / 4).truncatingRemainder(dividingBy: 1)
                     let side: Double = i % 2 == 1 ? -1 : 1
                     let x = (128 + side * p * 9 + sin(p * 9 + Double(i)) * 1.5).rounded()
                     let y = (66 - p * 26).rounded()
@@ -166,7 +168,7 @@ struct PalRoomAmbience: View {
             // ---- steam from the mug on the window seat ----
             if time != .night {
                 for i in 0..<3 {
-                    let p = (t / 2.4 + Double(i) / 3).truncatingRemainder(dividingBy: 1)
+                    let p = (t / Self.qp(2.4) + Double(i) / 3).truncatingRemainder(dividingBy: 1)
                     dot((100 + sin(p * 7 + Double(i) * 2) * 1.5).rounded(), (71 - p * 10).rounded(), (240, 240, 250), 0.55 * (1 - p))
                 }
             }
@@ -181,7 +183,7 @@ struct PalRoomAmbience: View {
                 let len = 6 + Int(rnd(i, 31) * 21)
                 for yi in 24..<(24 + len) {
                     let y = Double(yi)
-                    let sway = (sin(t * 1.1 + Double(i) * 0.5) * 1.6 * (y - 24) / 26).rounded()
+                    let sway = (sin(t * Self.qf(1.1) + Double(i) * 0.5) * 1.6 * (y - 24) / 26).rounded()
                     let green: (Double, Double, Double) = (yi + i) % 2 == 1 ? (84, 156, 92) : (56, 116, 70)
                     dot(x0 + Double((yi / 4) % 2) + sway, y, tinted(green, look.plantTint), 1)
                 }
@@ -191,10 +193,10 @@ struct PalRoomAmbience: View {
             let fishColors: [(Double, Double, Double)] = [(250, 140, 60), (250, 210, 90), (110, 170, 240)]
             for i in 0..<3 {
                 let sp = 3 + rnd(i, 40) * 3, span = 15.0
-                let p = (t * sp / span + rnd(i, 41) * 2).truncatingRemainder(dividingBy: 2)   // there and back
+                let p = (t * Self.qs(sp, 2 * span) / span + rnd(i, 41) * 2).truncatingRemainder(dividingBy: 2)   // there and back
                 let right = p < 1
                 let x = 193 + ((right ? p : 2 - p) * span).rounded(.down)
-                let y = 45 + (rnd(i, 42) * 5).rounded(.down) + sin(t * 2 + Double(i)).rounded()
+                let y = 45 + (rnd(i, 42) * 5).rounded(.down) + sin(t * Self.qf(2) + Double(i)).rounded()
                 let c = tinted(fishColors[i], look.shelfTint)
                 for dx in 0..<3 { dot(x + Double(dx), y, c, 1) }
                 dot(x + (right ? 2 : 0), y - 1, c, 1)                                        // fin
@@ -202,8 +204,8 @@ struct PalRoomAmbience: View {
                 dot(x + (right ? 2 : 0), y, (30, 30, 40), 1)                                 // eye
             }
             for i in 0..<3 {
-                let p = (t / 2.2 + Double(i) / 3).truncatingRemainder(dividingBy: 1)
-                dot(206 + (sin(p * 12) > 0 ? 1 : 0), (50 - p * 7).rounded(.down), (220, 240, 250), 0.8 * (1 - p * 0.5))
+                let p = (t / Self.qp(2.2) + Double(i) / 3).truncatingRemainder(dividingBy: 1)
+                dot(206 + (sin(p * 12) > 0 ? 1 : 0), (50 - p * 7).rounded(.down), (220, 240, 250), 0.8 * Self.fade(p, 0.1, 0.25))
             }
 
             }   // end of !onlyClock
@@ -240,7 +242,7 @@ struct PalRoomAmbience: View {
     private var lightning: Bool { Self.lightning(t: t, weather: weather) }
     static func lightning(t: Double, weather: RoomWeather) -> Bool {
         guard weather == .storm else { return false }
-        let ph = t.truncatingRemainder(dividingBy: 7)
+        let ph = t.truncatingRemainder(dividingBy: 10)
         return ph < 0.12 || (ph > 0.25 && ph < 0.33)
     }
     /// Spots on the record player's spin path hidden by the desk chair (x * 1000 + y), from the room art.
@@ -302,4 +304,16 @@ struct PalRoomAmbience: View {
         return v - v.rounded(.down)
     }
     private func rnd(_ i: Int, _ salt: Double) -> Double { PalRoomAmbience.hash01(i, salt) }
+
+    // Every motion repeats exactly every 60 s (same as tools/fx/ambience.py), so the widget's
+    // 60-frame effect loop has no seam and the app and widget move the same way.
+    static let loop: Double = 60
+    /// angular speed -> nearest one with a whole number of turns per loop
+    static func qf(_ w: Double) -> Double { 2 * .pi * max(1, (w * loop / (2 * .pi)).rounded()) / loop }
+    /// px/s over a wrap of `span` px -> nearest whole number of wraps per loop
+    static func qs(_ speed: Double, _ span: Double) -> Double { span * max(1, (speed * loop / span).rounded()) / loop }
+    /// period -> nearest one that divides the loop
+    static func qp(_ period: Double) -> Double { loop / max(1, (loop / period).rounded()) }
+    /// 0 at both ends of a 0..1 cycle, 1 in the middle (no pop when it wraps)
+    static func fade(_ p: Double, _ a: Double = 0.15, _ b: Double = 0.15) -> Double { min(1, p / a) * min(1, (1 - p) / b) }
 }
