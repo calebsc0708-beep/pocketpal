@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tools
-        run: pip install -q pillow pyinstaller
+        run: pip install -q pillow numpy pyinstaller
       - name: Prepare pal frames
         run: python desktop/prepare_assets.py
       - name: Smoke test (opens the pal, tries every pal and size, quits)

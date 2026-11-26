@@ -219,9 +219,15 @@ struct RoomWidgetView: View {
             }
 
             if night {
-                // asleep under the covers, whatever the motion setting
-                PalSleepLayer(time: entry.time, weather: entry.weather, t: 0.5, scale: s, wide: wide)
-                    .frame(width: 256 * s, height: 160 * s)
+                // asleep under the covers, whatever the motion setting: the lump breathes and the Zs
+                // float up once a second (60-second font loop, like the room effects)
+                let sleepFont = "PokePal-sleep\(wide ? "w" : "")-\(entry.weather.rawValue)"
+                if Sprites.hasFont(sleepFont, size: 256 * s) {
+                    fxFont(sleepFont, origin: .zero, side: 256, scale: s)
+                } else {
+                    PalSleepLayer(time: entry.time, weather: entry.weather, t: 0.5, scale: s, wide: wide)
+                        .frame(width: 256 * s, height: 160 * s)
+                }
             } else {
                 pal(scale: s)
             }

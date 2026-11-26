@@ -27,7 +27,7 @@ jobs:
           node-version: "24"
       - name: Render key frames
         run: |
-          pip install -q pillow
+          pip install -q pillow numpy
           python prepare_frames.py
       - name: Build
         run: |

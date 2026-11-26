@@ -93,7 +93,14 @@ def build_font60(ps_name, strikes, out_path, offsets=None):
     from fontTools.ttLib.tables.sbixStrike import Strike
     from fontTools.ttLib.tables.sbixGlyph import Glyph as SbixGlyph
     from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
-    frames = [f"f{n:02d}" for n in range(60)]
+    # identical pictures are stored once: second n shows glyph slot[n]
+    first = next(iter(strikes.values()))
+    uniq, slot = {}, []
+    for n in range(60):
+        key = tuple(strikes[p][n] for p in strikes)
+        slot.append(uniq.setdefault(key, len(uniq)))
+    frames = [f"f{k:02d}" for k in range(len(uniq))]
+    rep = {k: slot.index(k) for k in range(len(uniq))}       # a second that shows glyph k
     glyph_order = list(EMPTY.keys()) + DIGITS + ["zw"] + frames
     fb = FontBuilder(UPM, isTTF=True)
     fb.setupGlyphOrder(glyph_order)
@@ -113,13 +120,13 @@ def build_font60(ps_name, strikes, out_path, offsets=None):
     sbix = newTable("sbix"); sbix.version = 1; sbix.flags = 1
     for ppem, images in strikes.items():
         strike = Strike(ppem=ppem, resolution=72)
-        for n, gname in enumerate(frames):
+        for k, gname in enumerate(frames):
             ox, oy = (offsets or {}).get(ppem, (0, 0))
-            strike.glyphs[gname] = SbixGlyph(glyphName=gname, graphicType="png ", imageData=images[n],
+            strike.glyphs[gname] = SbixGlyph(glyphName=gname, graphicType="png ", imageData=images[rep[k]],
                                              originOffsetX=ox, originOffsetY=oy)
         sbix.strikes[ppem] = strike
     fb.font["sbix"] = sbix
-    ligs = "\n".join(f"    sub {DIGITS[a]} {DIGITS[b]} by f{a}{b};" for a in range(6) for b in range(10))
+    ligs = "\n".join(f"    sub {DIGITS[a]} {DIGITS[b]} by f{slot[a * 10 + b]:02d};" for a in range(6) for b in range(10))
     fea = f"""
 languagesystem DFLT dflt;
 languagesystem latn dflt;
@@ -169,6 +176,53 @@ def room_fx(time, weather):
             strikes.setdefault(ppem, []).append(png(part.resize(((x1 - x0) * m, (y1 - y0) * m), Image.NEAREST)))
             offsets[ppem] = (x0 * m, (256 - y1) * m)          # picture's bottom-left, up from the square's bottom
     name = f"PokePal-fx-{time}-{weather}"
+    return build_font60(name, strikes, OUT / f"{name}.ttf", offsets)
+
+
+# ---- the pal asleep under the covers (widget): breathing lump + Zs floating up, once a second ----
+COVERS_ORIGIN, COVERS_SIZE = (204, 82), (36, 20)     # must match PalSleepLayer in Pal/PalRoomView.swift
+LUMP_X = 216
+Z_COLOR = (255, 248, 225)
+
+
+def sleep_frame(weather, wide, t):
+    img = Image.new("RGBA", (256, 160), (0, 0, 0, 0))
+    breath = 1 if t % 4 in (1, 2) else 0                       # 2 s in, 2 s out
+    img.alpha_composite(asset(f"covers{'w' if wide else ''}{breath}_night_{weather}"), COVERS_ORIGIN)
+    px = img.load()
+    for i in range(3):                                         # three Zs, a third of the way apart
+        p = (t / 10 + i / 3) % 1                               # each takes 10 s to float up; the 3 never line up, so it reads as drifting
+        size = 2 + i % 2 + round(p * 2)
+        x = LUMP_X + 6 + round(p * 10 + math.sin(p * 6 + i) * 1.5)
+        y = 84 - round(p * 22)
+        a = min(1, p / 0.15) * min(1, (1 - p) / 0.3)
+        if a <= 0.05:
+            continue
+        for k in range(size + 1):
+            for (zx, zy) in ((x + k, y), (x + k, y + size), (x + size - k, y + k)):
+                if 0 <= zx < 256 and 0 <= zy < 160:
+                    b = px[zx, zy]
+                    # blend over whatever is there (the quilt / clear) so faint Zs look faint
+                    na = a + b[3] / 255 * (1 - a)
+                    c = tuple(round((Z_COLOR[j] * a + b[j] * b[3] / 255 * (1 - a)) / max(na, 1e-6)) for j in range(3))
+                    px[zx, zy] = c + (round(na * 255),)
+    return img
+
+
+def sleep_font(weather, wide):
+    frames = [sleep_frame(weather, wide, t) for t in range(FX_FRAMES)]
+    union = np.zeros((160, 256), bool)
+    for f in frames:
+        union |= np.asarray(f)[..., 3] > 0
+    ys, xs = np.nonzero(union)
+    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+    strikes, offsets = {}, {}
+    for f in frames:
+        part = f.crop((x0, y0, x1, y1))
+        for m in (2, 4):
+            strikes.setdefault(256 * m, []).append(png(part.resize(((x1 - x0) * m, (y1 - y0) * m), Image.NEAREST)))
+            offsets[256 * m] = (x0 * m, (256 - y1) * m)
+    name = f"PokePal-sleep{'w' if wide else ''}-{weather}"
     return build_font60(name, strikes, OUT / f"{name}.ttf", offsets)
 
 
@@ -222,6 +276,9 @@ def main():
     for t in TIMES:
         for w in WEATHERS:
             files.append(room_fx(t, w))
+    for w in WEATHERS:                       # asleep (night only), normal and wide room
+        files.append(sleep_font(w, False))
+        files.append(sleep_font(w, True))
     for p in PALETTES:
         files.append(lights(p))
         files.append(lights(p, strip=True))
